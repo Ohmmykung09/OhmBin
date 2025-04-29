@@ -6,8 +6,8 @@ public class PriorityQueue{
         this.rear = null;
     }
 
-    public void enQueue(int id,String name,int price,int quantity){
-        Product P = new Product(id, name, price, quantity);
+    //public void enQueue(int id,String name,int price,int quantity){
+    public void enQueue(Product P){
         if(this.front == null){
             this.front = P;
             this.rear = P;
@@ -54,6 +54,15 @@ public class PriorityQueue{
             return P;
         }
 
+    }
+
+    public boolean isEmpty(){
+        if(this.front==null && this.rear==null){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 
 }

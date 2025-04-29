@@ -6,8 +6,7 @@ public class myQueue {
         this.rear = null;
     }
 
-    public void enQueue(int id,String name,int price,int quantity){
-        Product P = new Product(id, name, price, quantity);
+    public void enQueue(Product P){
         if(this.front ==null){
             this.front = P;
             this.rear = P;
