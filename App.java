@@ -1,50 +1,33 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
+import java.util.List;
 
 public class App {
     private VendingMachine vm;
     private JFrame frame;
-    private DefaultListModel<String> productModel;
+    private JPanel productGridPanel;
     private DefaultListModel<String> cartModel;
-    private JList<String> productList;
     private JList<String> cartList;
     private JLabel totalPriceLabel;
 
     public App(VendingMachine vm) {
         this.vm = vm;
         this.frame = new JFrame("Vending Machine");
-        this.productModel = new DefaultListModel<>();
         this.cartModel = new DefaultListModel<>();
     }
 
-    // Initialize GUI components
     public void createAndShowGUI() {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 400);
+        frame.setSize(800, 500);
         frame.setLayout(new BorderLayout());
 
-        // Create Product List Panel
-        JPanel productPanel = new JPanel();
-        productPanel.setLayout(new BorderLayout());
-        productList = new JList<>(productModel);
-        productPanel.add(new JScrollPane(productList), BorderLayout.CENTER);
-        
-        JButton addToCartButton = new JButton("Add to Cart");
-        addToCartButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                int selectedIndex = productList.getSelectedIndex();
-                if (selectedIndex >= 0) {
-                    Product selectedProduct = vm.getProductAt(selectedIndex);
-                    vm.AddToCart(selectedProduct);
-                    updateCartDisplay();
-                }
-            }
-        });
-        productPanel.add(addToCartButton, BorderLayout.SOUTH);
+        // Grid panel to hold product panels
+        productGridPanel = new JPanel();
+        JScrollPane productScrollPane = new JScrollPane(productGridPanel);
+        frame.add(productScrollPane, BorderLayout.CENTER);
 
-        // Create Cart Panel
+        // Cart Panel
         JPanel cartPanel = new JPanel();
         cartPanel.setLayout(new BorderLayout());
         cartList = new JList<>(cartModel);
@@ -54,52 +37,73 @@ public class App {
         totalPriceLabel = new JLabel("Total Price: 0 THB");
         cartPanel.add(totalPriceLabel, BorderLayout.SOUTH);
 
-        // Create Checkout Button
+        // Checkout Button
         JButton checkoutButton = new JButton("Checkout");
-        checkoutButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                vm.cashOut();
-                updateCartDisplay();
-                JOptionPane.showMessageDialog(frame, "Checkout successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            }
+        checkoutButton.addActionListener(e -> {
+            vm.cashOut();
+            updateCartDisplay();
+            JOptionPane.showMessageDialog(frame, "Checkout successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
         });
         cartPanel.add(checkoutButton, BorderLayout.NORTH);
 
-        // Add panels to frame
-        frame.add(productPanel, BorderLayout.WEST);
         frame.add(cartPanel, BorderLayout.EAST);
 
+        // Initialize GUI with products
+        updateProductDisplay();
         frame.setVisible(true);
     }
 
-    // Update Product List
     public void updateProductDisplay() {
-        productModel.clear();
-        List<Product> products = vm.getProducts(); // Assuming you have a method to get all products
-        for (Product product : products) {
-            productModel.addElement(product.getName() + " - " + product.getPrice() + " THB");
+        productGridPanel.removeAll();
+        List<Product> products = vm.getAllProducts();
+
+        int cols = 3;
+        int rows = (int) Math.ceil(products.size() / (double) cols);
+        productGridPanel.setLayout(new GridLayout(rows, cols, 10, 10));
+
+        for (Product p : products) {
+            JPanel productPanel = new JPanel();
+            productPanel.setLayout(new BoxLayout(productPanel, BoxLayout.Y_AXIS));
+            productPanel.setBorder(BorderFactory.createTitledBorder(p.getName()));
+
+            JLabel priceLabel = new JLabel("Price: " + p.getPrice());
+            JLabel qtyLabel = new JLabel("Qty: " + p.getQuantity());
+
+            JButton addToCartBtn = new JButton("Add");
+            addToCartBtn.addActionListener(e -> {
+                vm.AddToCart(p);
+                updateCartDisplay();
+            });
+
+            productPanel.add(priceLabel);
+            productPanel.add(qtyLabel);
+            productPanel.add(addToCartBtn);
+            productGridPanel.add(productPanel);
         }
+
+        productGridPanel.revalidate();
+        productGridPanel.repaint();
     }
 
-    // Update Cart Display
     public void updateCartDisplay() {
         cartModel.clear();
-        cartModel.addElement("Total: " + vm.getCartTotal() + " THB");
-        List<Product> cartItems = vm.getCartItems(); // Assuming you have a method to get cart items
+        List<Product> cartItems = vm.getCart().getAllItems();
         for (Product product : cartItems) {
             cartModel.addElement(product.getName() + " - " + product.getQuantity() + " x " + product.getPrice() + " THB");
         }
-        totalPriceLabel.setText("Total Price: " + vm.getCartTotal() + " THB");
+        totalPriceLabel.setText("Total Price: " + vm.getCart().getSumPrice() + " THB");
     }
 
     public static void main(String[] args) {
         VendingMachine vendingMachine = new VendingMachine();
         App gui = new App(vendingMachine);
+
+        // Simulate adding some products
+        vendingMachine.getScreen().addProduct(30, "Coke", 10);
+        vendingMachine.getScreen().addProduct(25, "Pepsi", 10);
+        vendingMachine.getScreen().addProduct(20, "Sprite", 15);
+        vendingMachine.getScreen().addProduct(40, "Fanta", 5);
+
         gui.createAndShowGUI();
-        
-        // Simulate adding some products to the vending machine
-        vendingMachine.AddToCart(new Product(1, "Coke", 30, 10)); // Example products
-        vendingMachine.AddToCart(new Product(2, "Pepsi", 25, 10)); 
-        gui.updateProductDisplay();
     }
 }

@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class Screen {
     private PriorityQueue PQ;
     private MyQueue Q;
@@ -50,4 +53,9 @@ public class Screen {
             PQ.enQueue(temp);
         }
     }
+
+    public Product getFrontProduct() {
+        return PQ.front();
+    }    
+
 }

@@ -1,5 +1,5 @@
 import java.util.List;
-
+import java.util.ArrayList;
 public class VendingMachine {
     private Screen Scr;
     private Cart cart;
@@ -41,5 +41,38 @@ public class VendingMachine {
 
     public void viewCart() {
         //cart.printCart(); // Assuming `printCart` exists
+    }
+    
+    public Product getProductAt(int index) {
+        int i = 0;
+        Product current = Scr.getFrontProduct(); // You need to expose this in Screen
+    
+        while (current != null) {
+            if (i == index) {
+                return current;
+            }
+            current = current.getNext();
+            i++;
+        }
+    
+        return null; // index out of bounds
+    }
+
+    public List<Product> getAllProducts() {
+        List<Product> products = new ArrayList<>();
+        Product current = Scr.getFrontProduct();
+    
+        while (current != null) {
+            products.add(current);
+            current = current.getNext();
+        }
+    
+        return products;
+    }
+    public Cart getCart(){
+        return this.cart;
+    }
+    public Screen getScreen(){
+        return this.Scr;
     }
 }
