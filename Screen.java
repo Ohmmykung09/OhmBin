@@ -1,6 +1,3 @@
-import java.util.ArrayList;
-import java.util.List;
-
 public class Screen {
     private PriorityQueue PQ;
     private MyQueue Q;
