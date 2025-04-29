@@ -1,35 +1,29 @@
 public class PriorityQueue{
     private Product front;
     private Product rear;
+
     public PriorityQueue(){
         this.front = null;
         this.rear = null;
     }
 
-    //public void enQueue(int id,String name,int price,int quantity){
     public void enQueue(Product P){
         if(this.front == null){
-            this.front = P;
-            this.rear = P;
+            front = rear = P;
         }
         else if(P.getPriority() > this.front.getPriority()){
-            Product temp = this.front;
+            P.setNext(this.front);
             this.front = P;
-            P.setNext(temp);
         }
         else{
             Product current = this.front;
-            while(current.getNext() != null){
-                if(P.getPriority() > current.getNext().getPriority()){
-                    Product temp = current.getNext();
-                    current.setNext(P);
-                    P.setNext(temp);
-                    break;   
-                }
+            while(current.getNext() != null && P.getPriority() <= current.getNext().getPriority()){
                 current = current.getNext();
             }
-            if(current.getNext() == null){
-                current.setNext(P);
+            P.setNext(current.getNext());
+            current.setNext(P);
+
+            if(P.getNext() == null){
                 this.rear = P;
             }
         }
@@ -44,25 +38,19 @@ public class PriorityQueue{
             System.out.println("Empty");
             return null;
         }else{
-            Product P = this.front;
-            if(rear == front){
-                rear=null;
-                front = null;
-            }else{
-                this.front = this.front.getNext();
+            Product removed = front;
+            front = front.getNext();
+            if (front == null) {
+                rear = null;
             }
-            return P;
+            removed.setNext(null);
+            return removed;
         }
 
     }
 
     public boolean isEmpty(){
-        if(this.front==null && this.rear==null){
-            return true;
-        }
-        else{
-            return false;
-        }
+        return this.front == null;
     }
 
 }

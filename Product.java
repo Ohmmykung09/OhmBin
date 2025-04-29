@@ -49,8 +49,12 @@ class Product{
         return this.quantity;
     }
 
-    public int Update_sale(int n){
+    public int UpdateSale(int n){
         this.total_sale = this.total_sale+n;
+        return this.total_sale;
+    }
+
+    public int getTotalSale() {
         return this.total_sale;
     }
 

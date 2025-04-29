@@ -1,7 +1,7 @@
-public class myQueue {
+public class MyQueue {
     private Product front;
     private Product rear;
-    public myQueue(){
+    public MyQueue(){
         this.front = null;
         this.rear = null;
     }
@@ -16,31 +16,26 @@ public class myQueue {
         }
     }
 
-    public Product deQueue(){
-        if(this.front==null){
-            System.out.println("Empty");
+    public Product deQueue() {
+        if (this.front == null) {
+            System.out.println("Queue is empty.");
             return null;
-        }else{
-            Product P = this.front;
-            if(rear == front){
-                rear=null;
-                front = null;
-            }else{
-                this.front = this.front.getNext();
+        } else {
+            Product removed = this.front;
+            this.front = this.front.getNext();
+            if (this.front == null) {
+                this.rear = null;
             }
-            return P;
+            removed.setNext(null);
+            return removed;
         }
     }
+
     public Product front(){
         return this.front;
     }
 
     public boolean isEmpty(){
-        if(this.front==null && this.rear==null){
-            return true;
-        }
-        else{
-            return false;
-        }
+        return this.front == null;
     }
 }
