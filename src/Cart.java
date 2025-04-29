@@ -11,12 +11,38 @@ public class Cart {
     }
 
     public void addToCart(Product P){
-        Q.enQueue(P);
+        if(Q.isEmpty()){
+            Q.enQueue(P);
+        }
+        else if(P.getId() == Q.front().getId()){
+            Q.front().addQuantity(P.getQuantity());
+        }
+        else{
+            Boolean find = false;
+            Product temp = Q.front();
+            Q.deQueue();
+            Q.enQueue(temp);
+            while(Q.front() != temp){
+                Product current = Q.front();
+                Q.deQueue();
+                if(current.getId()==P.getId()){
+                    current.addQuantity(P.getQuantity());
+                    find = true;
+                }
+                Q.enQueue(current);
+            }
+            if(!find){
+                Q.enQueue(P);
+            }
+        }
     }
 
     public void removeFromCart(Product P){
         if(Q.isEmpty()){
             return;
+        }
+        else if(Q.front().getId() == P.getId()){
+            Q.deQueue();
         }
         else{
             Product first = Q.front();
@@ -38,17 +64,23 @@ public class Cart {
         this.sumPrice = Price; 
     }
 
-    public void calculatePrice(){
+    public void calculatePrice() {
+        setSumPrice(0);
+        if (Q.isEmpty()) return;
+    
         Product temp = Q.front();
         Q.deQueue();
+        this.setSumPrice(getSumPrice() + temp.getQuantity() * temp.getPrice());
         Q.enQueue(temp);
-        while(Q.front() != temp){
-            Product temp2 = Q.front();
+    
+        while (Q.front() != temp) {
+            Product current = Q.front();
             Q.deQueue();
-            this.setSumPrice(getSumPrice()+temp2.getQuantity()*temp2.getPrice());
-            Q.enQueue(temp2);
+            this.setSumPrice(getSumPrice() + current.getQuantity() * current.getPrice());
+            Q.enQueue(current);
         }
     }
+    
 
     public int getNumber(){
         return this.number;

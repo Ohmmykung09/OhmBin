@@ -75,4 +75,9 @@ public class VendingMachine {
     public Screen getScreen(){
         return this.Scr;
     }
+
+    public void addProduct(int price, String name, int quantity) {
+        Scr.addProduct(price, name, quantity);
+    }
+    
 }
