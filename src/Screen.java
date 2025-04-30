@@ -15,13 +15,12 @@ public class Screen {
         this.PQ.enQueue(P);
     }
 
-    public void editProduct(int price, String name, int quantity, int priority) {
+    public void editProduct(int id, int price, String name, int quantity, int priority) {
         while (!PQ.isEmpty()) {
             Product temp = PQ.front();
             PQ.deQueue();
-            if (temp.getName().equals(name)) {
+            if (temp.getId() == id) {
                 Product edited = new Product(temp.getId(), name, price, quantity, priority);
-                // edited.setPriority(quantity);
                 Q.enQueue(edited);
             } else {
                 Q.enQueue(temp);
@@ -53,5 +52,4 @@ public class Screen {
     public Product getFrontProduct() {
         return PQ.front();
     }
-
 }

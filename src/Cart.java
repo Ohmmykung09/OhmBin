@@ -1,80 +1,86 @@
 import java.util.ArrayList;
 import java.util.List;
+
 public class Cart {
     private MyQueue Q;
     private int number;
     private int sumPrice;
-    public Cart(){
+
+    public Cart() {
         this.Q = new MyQueue();
         this.number = 1;
         this.sumPrice = 0;
     }
 
-    public void addToCart(Product P){
-        if(Q.isEmpty()){
+    public void addToCart(Product P) {
+        if (Q.isEmpty()) {
             Q.enQueue(P);
-        }
-        else if(P.getId() == Q.front().getId()){
+        } else if (P.getId() == Q.front().getId()) {
             Q.front().addQuantity(P.getQuantity());
-        }
-        else{
+        } else {
             Boolean find = false;
             Product temp = Q.front();
             Q.deQueue();
             Q.enQueue(temp);
-            while(Q.front() != temp){
+            while (Q.front() != temp) {
                 Product current = Q.front();
                 Q.deQueue();
-                if(current.getId()==P.getId()){
+                if (current.getId() == P.getId()) {
                     current.addQuantity(P.getQuantity());
                     find = true;
                 }
                 Q.enQueue(current);
             }
-            if(!find){
+            if (!find) {
                 Q.enQueue(P);
             }
         }
     }
 
     public void removeFromCart(Product P) {
+        if (Q.isEmpty())
+            return;
+
+        if (Q.front().getId() == P.getId()) {
+            Q.deQueue();
+            calculatePrice();
+            return;
+        }
+
         Product temp = Q.front();
         Q.deQueue();
         Q.enQueue(temp);
+
         while (Q.front() != temp) {
             Product current = Q.front();
             Q.deQueue();
             if (current.getId() == P.getId()) {
-                if (current.getQuantity() > 1) {
-                    current.addQuantity(-1);
-                    Q.enQueue(current);
-                } else {
-                    // Remove completely
-                }
+                calculatePrice();
+                return;
             } else {
                 Q.enQueue(current);
             }
         }
     }
-    
 
-    public int getSumPrice(){
+    public int getSumPrice() {
         return this.sumPrice;
     }
 
-    public void setSumPrice(int Price){
-        this.sumPrice = Price; 
+    public void setSumPrice(int Price) {
+        this.sumPrice = Price;
     }
 
     public void calculatePrice() {
         setSumPrice(0);
-        if (Q.isEmpty()) return;
-    
+        if (Q.isEmpty())
+            return;
+
         Product temp = Q.front();
         Q.deQueue();
         this.setSumPrice(getSumPrice() + temp.getQuantity() * temp.getPrice());
         Q.enQueue(temp);
-    
+
         while (Q.front() != temp) {
             Product current = Q.front();
             Q.deQueue();
@@ -82,13 +88,12 @@ public class Cart {
             Q.enQueue(current);
         }
     }
-    
 
-    public int getNumber(){
+    public int getNumber() {
         return this.number;
     }
 
-    public void numberIncrement(){
+    public void numberIncrement() {
         this.number++;
     }
 
@@ -101,21 +106,22 @@ public class Cart {
 
     public List<Product> getAllItems() {
         List<Product> items = new ArrayList<>();
-    
-        if (Q.isEmpty()) return items;
-    
+
+        if (Q.isEmpty())
+            return items;
+
         Product temp = Q.front();
         Q.deQueue();
         Q.enQueue(temp);
         items.add(temp);
-    
+
         while (Q.front() != temp) {
             Product curr = Q.front();
             Q.deQueue();
             Q.enQueue(curr);
             items.add(curr);
         }
-    
+
         return items;
     }
 }

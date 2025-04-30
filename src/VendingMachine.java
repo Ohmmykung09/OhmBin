@@ -1,5 +1,6 @@
 import java.util.List;
 import java.util.ArrayList;
+import javax.swing.JOptionPane;
 
 public class VendingMachine {
     private Screen Scr;
@@ -14,22 +15,26 @@ public class VendingMachine {
 
     public void AddToCart(Product P) {
         if (P.getQuantity() <= 0) {
-            return; // Cannot add out-of-stock product
+            JOptionPane.showMessageDialog(null, "This product is out of stock!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
-        // Decrease stock
-        P.addQuantity(-1);
-
-        // If stock is 0, mark as unavailable
-        if (P.getQuantity() == 0) {
-            P.setPriority(-1); // Grey
+        List<Product> cartItems = cart.getAllItems();
+        for (Product cartItem : cartItems) {
+            if (cartItem.getId() == P.getId()) {
+                if (cartItem.getQuantity() + 1 > P.getQuantity()) {
+                    JOptionPane.showMessageDialog(null, "Not enough stock available!", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                cartItem.addQuantity(1);
+                cart.calculatePrice();
+                return;
+            }
         }
 
-        // Add to cart (clone to avoid affecting original product in list)
         Product Added = new Product(P.getId(), P.getName(), P.getPrice(), 1, P.getPriority());
-        Added.setPriority(P.getPriority());
         cart.addToCart(Added);
-
         cart.calculatePrice();
     }
 
@@ -40,15 +45,20 @@ public class VendingMachine {
 
     public void cashOut() {
         List<Product> cartItems = cart.getAllItems();
-        int total = cart.getSumPrice();
-        history.addLog(cart.getNumber(), cartItems, total);
+        for (Product cartItem : cartItems) {
+            for (Product product : getAllProducts()) {
+                if (product.getId() == cartItem.getId()) {
+                    product.addQuantity(-cartItem.getQuantity()); // Proper stock reduction
+                    product.UpdateSale(cartItem.getQuantity());
+                    break;
+                }
+            }
+        }
         cart.clearCart();
-        cart.numberIncrement();
-
     }
 
-    public void editProduct(int price, String name, int quantity, int priority) {
-        Scr.editProduct(price, name, quantity, priority);
+    public void editProduct(int id, int price, String name, int quantity, int priority) {
+        Scr.editProduct(id, price, name, quantity, priority);
     }
 
     public void removeProductFromScreen(String name) {
@@ -61,7 +71,7 @@ public class VendingMachine {
 
     public Product getProductAt(int index) {
         int i = 0;
-        Product current = Scr.getFrontProduct(); // You need to expose this in Screen
+        Product current = Scr.getFrontProduct();
 
         while (current != null) {
             if (i == index) {

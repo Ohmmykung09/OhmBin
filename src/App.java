@@ -12,6 +12,7 @@ public class App {
     private CardLayout cardLayout;
     private JList<String> cartList;
     private DefaultListModel<String> cartModel;
+    private DefaultListModel<String> productsModel; // Declare productsModel here
     private JLabel totalPriceLabel;
     private JPanel productGridPanel;
     private final Color PRIMARY_COLOR = new Color(41, 128, 185);
@@ -26,6 +27,7 @@ public class App {
         this.vm = vm;
         this.frame = new JFrame("Modern Vending Machine");
         this.cartModel = new DefaultListModel<>();
+        this.productsModel = new DefaultListModel<>();
         setupFrame();
     }
 
@@ -62,7 +64,7 @@ public class App {
         headerPanel.setBackground(PRIMARY_COLOR);
         headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        JLabel titleLabel = new JLabel("Modern Vending Machine");
+        JLabel titleLabel = new JLabel("Vending Machine");
         titleLabel.setFont(TITLE_FONT);
         titleLabel.setForeground(Color.WHITE);
 
@@ -110,36 +112,55 @@ public class App {
         JButton deleteBtn = createStyledButton("Remove", ACCENT_COLOR);
 
         plusBtn.addActionListener(e -> {
-            int idx = cartList.getSelectedIndex() - 1;
-            if (idx >= 0) {
-                Product p = vm.getCart().getAllItems().get(idx);
+            int idx = cartList.getSelectedIndex();
+            if (idx <= 0) {
+                JOptionPane.showMessageDialog(frame, "Please select an item to increase quantity.", "Error",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            Product p = vm.getCart().getAllItems().get(idx - 1);
+            Product originalProduct = vm.getAllProducts().stream()
+                    .filter(prod -> prod.getId() == p.getId())
+                    .findFirst()
+                    .orElse(null);
+
+            if (originalProduct != null && p.getQuantity() < originalProduct.getQuantity()) {
                 p.addQuantity(1);
                 vm.getCart().calculatePrice();
                 updateCartDisplay();
+            } else {
+                JOptionPane.showMessageDialog(frame, "Not enough stock available!", "Error",
+                        JOptionPane.ERROR_MESSAGE);
             }
         });
 
         minusBtn.addActionListener(e -> {
-            int idx = cartList.getSelectedIndex() - 1;
-            if (idx >= 0) {
-                Product p = vm.getCart().getAllItems().get(idx);
-                if (p.getQuantity() > 1) {
-                    p.addQuantity(-1);
-                    vm.getCart().calculatePrice();
-                } else {
-                    vm.getCart().removeFromCart(p);
-                }
-                updateCartDisplay();
+            int idx = cartList.getSelectedIndex();
+            if (idx <= 0)
+                return;
+
+            Product p = vm.getCart().getAllItems().get(idx - 1);
+            if (p.getQuantity() > 1) {
+                p.addQuantity(-1);
+                vm.getCart().calculatePrice();
+            } else {
+                vm.getCart().removeFromCart(p);
             }
+            updateCartDisplay();
         });
 
         deleteBtn.addActionListener(e -> {
-            int idx = cartList.getSelectedIndex() - 1;
-            if (idx >= 0) {
-                Product p = vm.getCart().getAllItems().get(idx);
-                vm.getCart().removeFromCart(p);
-                updateCartDisplay();
+            int idx = cartList.getSelectedIndex();
+            if (idx <= 0) {
+                JOptionPane.showMessageDialog(frame, "Please select an item to remove.", "Error",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
             }
+
+            Product p = vm.getCart().getAllItems().get(idx - 1);
+            vm.getCart().removeFromCart(p);
+            updateCartDisplay();
         });
 
         cartControlPanel.add(plusBtn);
@@ -159,6 +180,8 @@ public class App {
             } else {
                 vm.cashOut();
                 updateCartDisplay();
+                updateProductDisplay();
+                updateProductsList(productsModel);
                 JOptionPane.showMessageDialog(frame, "Purchase successful! Thank you.", "Success",
                         JOptionPane.INFORMATION_MESSAGE);
             }
@@ -216,7 +239,6 @@ public class App {
         productsListPanel.setBackground(BG_COLOR);
         productsListPanel.setBorder(createRoundedBorder("Product Inventory", 10));
 
-        DefaultListModel<String> productsModel = new DefaultListModel<>();
         JList<String> productsList = new JList<>(productsModel);
         productsList.setFont(REGULAR_FONT);
         productsList.setBackground(Color.WHITE);
@@ -273,7 +295,7 @@ public class App {
                             "Enter new priority (lower number = higher priority):",
                             String.valueOf(p.getPriority())));
 
-                    vm.editProduct(price, name, qty, priority);
+                    vm.editProduct(p.getId(), price, name, qty, priority);
                     updateProductDisplay();
                     updateProductsList(productsModel);
                 } catch (NumberFormatException ex) {
@@ -296,9 +318,9 @@ public class App {
                         "Confirm Removal", JOptionPane.YES_NO_OPTION);
 
                 if (confirm == JOptionPane.YES_OPTION) {
-                    vm.removeProduct(p.getName());
-                    updateProductDisplay();
-                    updateProductsList(productsModel);
+                    vm.removeProduct(p.getName()); // Remove the product from the inventory
+                    updateProductDisplay(); // Refresh the product grid
+                    updateProductsList(productsModel); // Refresh the admin product list
                 }
             } else {
                 JOptionPane.showMessageDialog(frame, "Please select a product to remove.",
@@ -376,7 +398,8 @@ public class App {
         stockLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         stockLabel.setForeground(new Color(149, 165, 166));
 
-        JLabel priorityLabel = new JLabel("Priority: " + product.getPriority());
+        // Product priority label
+        JLabel priorityLabel = new JLabel("Popular Level: " + product.getPriority());
         priorityLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         priorityLabel.setForeground(new Color(149, 165, 166));
 
@@ -389,8 +412,13 @@ public class App {
         button.add(infoPanel, BorderLayout.CENTER);
 
         button.addActionListener(e -> {
-            vm.AddToCart(product);
-            updateCartDisplay();
+            if (product.getQuantity() <= 0) {
+                JOptionPane.showMessageDialog(frame, "This product is out of stock!", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            } else {
+                vm.AddToCart(product);
+                updateCartDisplay();
+            }
         });
 
         return button;

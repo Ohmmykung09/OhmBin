@@ -1,18 +1,19 @@
 public class MyQueue {
     private Product front;
     private Product rear;
-    public MyQueue(){
+
+    public MyQueue() {
         this.front = null;
         this.rear = null;
     }
 
-    public void enQueue(Product P){
-        if(this.front ==null){
+    public void enQueue(Product P) {
+        if (this.front == null) {
             this.front = P;
             this.rear = P;
-        }else{
+        } else {
             this.rear.setNext(P);
-            this.rear=P;
+            this.rear = P;
         }
     }
 
@@ -31,11 +32,11 @@ public class MyQueue {
         }
     }
 
-    public Product front(){
+    public Product front() {
         return this.front;
     }
 
-    public boolean isEmpty(){
+    public boolean isEmpty() {
         return this.front == null;
     }
 }

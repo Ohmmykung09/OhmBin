@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+
 public class History {
     private List<String> logs;
 
@@ -12,9 +13,9 @@ public class History {
         sb.append("Transaction #").append(transactionNumber).append(":\n");
         for (Product item : items) {
             sb.append(" - ").append(item.getName())
-              .append(" x ").append(item.getQuantity())
-              .append(" @ ").append(item.getPrice())
-              .append(" = ").append(item.getQuantity() * item.getPrice()).append(" THB\n");
+                    .append(" x ").append(item.getQuantity())
+                    .append(" @ ").append(item.getPrice())
+                    .append(" = ").append(item.getQuantity() * item.getPrice()).append(" THB\n");
         }
         sb.append("Total: ").append(totalPrice).append(" THB\n");
         sb.append("----------------------");
@@ -35,4 +36,3 @@ public class History {
         }
     }
 }
-
