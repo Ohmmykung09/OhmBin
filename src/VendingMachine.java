@@ -10,10 +10,24 @@ public class VendingMachine {
         this.history = new History();
     }
 
-    public void AddToCart(Product P){
-        Product Added = new Product(P.getId(), P.getName(), P.getPrice(), 1);
+    public void AddToCart(Product P) {
+        if (P.getQuantity() <= 0) {
+            return; // Cannot add out-of-stock product
+        }
+    
+        // Decrease stock
+        P.addQuantity(-1);
+    
+        // If stock is 0, mark as unavailable
+        if (P.getQuantity() == 0) {
+            P.setPriority(-1); // Grey
+        }
+    
+        // Add to cart (clone to avoid affecting original product in list)
+        Product Added = new Product(P.getId(), P.getName(), P.getPrice(), 1,P.getPriority());
         Added.setPriority(P.getPriority());
         cart.addToCart(Added);
+    
         cart.calculatePrice();
     }
 
@@ -76,8 +90,8 @@ public class VendingMachine {
         return this.Scr;
     }
 
-    public void addProduct(int price, String name, int quantity) {
-        Scr.addProduct(price, name, quantity);
+    public void addProduct(int price, String name, int quantity,int priority) {
+        Scr.addProduct(price, name, quantity,priority);
     }
     
 }

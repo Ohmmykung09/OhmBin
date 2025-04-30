@@ -6,14 +6,14 @@ class Product{
     private int price;
     private Product next;
     private int priority;
-    public Product(int id,String name,int price,int quantity){
+    public Product(int id,String name,int price,int quantity,int priority){
         this.id = id;
         this.name = name;
         this.price = price;
         this.quantity = quantity;
         this.total_sale = 0;
         this.next = null;
-        this.priority = 0;
+        this.priority = priority;
     }
 
     public int getId(){

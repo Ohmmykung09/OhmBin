@@ -37,24 +37,26 @@ public class Cart {
         }
     }
 
-    public void removeFromCart(Product P){
-        if(Q.isEmpty()){
-            return;
-        }
-        else if(Q.front().getId() == P.getId()){
+    public void removeFromCart(Product P) {
+        Product temp = Q.front();
+        Q.deQueue();
+        Q.enQueue(temp);
+        while (Q.front() != temp) {
+            Product current = Q.front();
             Q.deQueue();
-        }
-        else{
-            Product first = Q.front();
-            do {
-                Product current = Q.front();
-                Q.deQueue();
-                if (current.getId() != P.getId()) {
+            if (current.getId() == P.getId()) {
+                if (current.getQuantity() > 1) {
+                    current.addQuantity(-1);
                     Q.enQueue(current);
+                } else {
+                    // Remove completely
                 }
-            } while (Q.front() != first);
+            } else {
+                Q.enQueue(current);
+            }
         }
     }
+    
 
     public int getSumPrice(){
         return this.sumPrice;

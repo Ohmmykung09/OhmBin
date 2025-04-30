@@ -9,8 +9,8 @@ public class Screen {
         this.id = 1;
     }
 
-    public void addProduct(int price, String name,int quantity){
-        Product P = new Product(this.id,name,price,quantity);
+    public void addProduct(int price, String name,int quantity,int priority){
+        Product P = new Product(this.id,name,price,quantity,priority);
         id++;
         this.PQ.enQueue(P);
     }
@@ -20,8 +20,8 @@ public class Screen {
             Product temp = PQ.front();
             PQ.deQueue();
             if(temp.getName().equals(name)){
-                Product edited = new Product(temp.getId(), name, price, quantity);
-                edited.setPriority(quantity);
+                Product edited = new Product(temp.getId(), name, price, quantity,priority);
+                //edited.setPriority(quantity);
                 Q.enQueue(edited);
             }
             else{
