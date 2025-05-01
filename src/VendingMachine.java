@@ -49,6 +49,12 @@ public class VendingMachine {
             for (Product product : getAllProducts()) {
                 if (product.getId() == cartItem.getId()) {
                     product.addQuantity(-cartItem.getQuantity()); // Proper stock reduction
+                    if (product.getQuantity() <= 0) {
+                        product.setPriority(-1); // Mark as out of stock
+                        Scr.removeProduct(product.getName()); // Dequeue the product
+                        Scr.addProduct(product.getPrice(), product.getName(), product.getQuantity(),
+                                product.getPriority()); // Enqueue it again
+                    }
                     product.UpdateSale(cartItem.getQuantity());
                     break;
                 }

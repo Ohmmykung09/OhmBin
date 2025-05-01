@@ -210,6 +210,59 @@ public class App {
         return panel;
     }
 
+    // warning: this method is not used in the code
+    private void showProductDialog(Product product, DefaultListModel<String> productsModel) {
+        JPanel panel = new JPanel(new GridLayout(5, 2, 10, 10));
+        panel.setBackground(BG_COLOR);
+
+        JTextField nameField = new JTextField(product != null ? product.getName() : "");
+        JTextField priceField = new JTextField(product != null ? String.valueOf(product.getPrice()) : "");
+        JTextField quantityField = new JTextField(product != null ? String.valueOf(product.getQuantity()) : "");
+
+        // Priority dropdown with text labels
+        String[] priorities = { "Common Item", "Hot Seller", "New Item" };
+        JComboBox<String> priorityDropdown = new JComboBox<>(priorities);
+        if (product != null) {
+            priorityDropdown.setSelectedIndex(product.getPriority());
+        }
+
+        panel.add(new JLabel("Product Name:"));
+        panel.add(nameField);
+        panel.add(new JLabel("Product Price (THB):"));
+        panel.add(priceField);
+        panel.add(new JLabel("Product Quantity:"));
+        panel.add(quantityField);
+        panel.add(new JLabel("Product Priority:"));
+        panel.add(priorityDropdown);
+
+        int result = JOptionPane.showConfirmDialog(frame, panel,
+                product == null ? "Add New Product" : "Edit Product",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                int id = product != null ? product.getId() : vm.getAllProducts().size() + 1; // Generate new ID
+                String name = nameField.getText().trim();
+                int price = Integer.parseInt(priceField.getText().trim());
+                int quantity = Integer.parseInt(quantityField.getText().trim());
+                int priority = priorityDropdown.getSelectedIndex(); // Map selected index to integer priority
+
+                if (product == null) {
+                    // Add new product
+                    vm.addProduct(price, name, quantity, priority);
+                } else {
+                    // Edit existing product
+                    vm.editProduct(id, price, name, quantity, priority);
+                }
+                updateProductDisplay();
+                updateProductsList(productsModel);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Please enter valid numbers for price, quantity, and priority.",
+                        "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
     private JPanel createAdminPanel() {
         JPanel panel = new JPanel(new BorderLayout(15, 15));
         panel.setBackground(BG_COLOR);
@@ -264,45 +317,14 @@ public class App {
         JButton removeButton = createStyledButton("Remove Selected Product", new Color(192, 57, 43));
 
         addButton.addActionListener(e -> {
-            try {
-                String name = promptForInput("Product Name", "Enter product name:");
-                if (name != null && !name.trim().isEmpty()) {
-                    int price = Integer.parseInt(promptForInput("Product Price", "Enter product price (THB):"));
-                    int qty = Integer.parseInt(promptForInput("Product Quantity", "Enter quantity:"));
-                    int priority = Integer.parseInt(promptForInput("Product Priority",
-                            "Enter priority (lower number = higher priority):"));
-                    vm.addProduct(price, name, qty, priority);
-                    updateProductDisplay();
-                    updateProductsList(productsModel);
-                }
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(frame, "Please enter valid numbers for price, quantity, and priority.",
-                        "Input Error", JOptionPane.ERROR_MESSAGE);
-            }
+            showProductDialog(null, productsModel);
         });
 
         editButton.addActionListener(e -> {
             int selectedIndex = productsList.getSelectedIndex();
             if (selectedIndex >= 0) {
-                try {
-                    Product p = vm.getAllProducts().get(selectedIndex);
-                    String name = promptForInput("Edit Name", "Enter new name:", p.getName());
-                    int price = Integer.parseInt(promptForInput("Edit Price",
-                            "Enter new price (THB):", String.valueOf(p.getPrice())));
-                    int qty = Integer.parseInt(promptForInput("Edit Quantity",
-                            "Enter new quantity:", String.valueOf(p.getQuantity())));
-                    int priority = Integer.parseInt(promptForInput("Edit Priority",
-                            "Enter new priority (lower number = higher priority):",
-                            String.valueOf(p.getPriority())));
-
-                    vm.editProduct(p.getId(), price, name, qty, priority);
-                    updateProductDisplay();
-                    updateProductsList(productsModel);
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(frame,
-                            "Please enter valid numbers for price, quantity, and priority.",
-                            "Input Error", JOptionPane.ERROR_MESSAGE);
-                }
+                Product p = vm.getAllProducts().get(selectedIndex);
+                showProductDialog(p, productsModel); // Pass the selected product to the dialog
             } else {
                 JOptionPane.showMessageDialog(frame, "Please select a product to edit.",
                         "Selection Required", JOptionPane.WARNING_MESSAGE);
@@ -318,9 +340,9 @@ public class App {
                         "Confirm Removal", JOptionPane.YES_NO_OPTION);
 
                 if (confirm == JOptionPane.YES_OPTION) {
-                    vm.removeProduct(p.getName()); // Remove the product from the inventory
-                    updateProductDisplay(); // Refresh the product grid
-                    updateProductsList(productsModel); // Refresh the admin product list
+                    vm.removeProduct(p.getName());
+                    updateProductDisplay();
+                    updateProductsList(productsModel);
                 }
             } else {
                 JOptionPane.showMessageDialog(frame, "Please select a product to remove.",
@@ -399,9 +421,9 @@ public class App {
         stockLabel.setForeground(new Color(149, 165, 166));
 
         // Product priority label
-        JLabel priorityLabel = new JLabel("Popular Level: " + product.getPriority());
-        priorityLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        priorityLabel.setForeground(new Color(149, 165, 166));
+        JLabel priorityLabel = new JLabel(getPrioritylevel(product.getPriority()));
+        priorityLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        priorityLabel.setForeground(getBgColor(product.getPriority()));
 
         infoPanel.add(nameLabel);
         infoPanel.add(priceLabel);
@@ -410,6 +432,15 @@ public class App {
 
         button.add(iconPanel, BorderLayout.NORTH);
         button.add(infoPanel, BorderLayout.CENTER);
+
+        if (product.getQuantity() <= 0) {
+            button.setBackground(new Color(220, 220, 220));
+            button.setEnabled(false);
+            nameLabel.setForeground(new Color(128, 128, 128));
+            priceLabel.setForeground(new Color(128, 128, 128));
+            stockLabel.setForeground(new Color(128, 128, 128));
+            priorityLabel.setForeground(new Color(128, 128, 128));
+        }
 
         button.addActionListener(e -> {
             if (product.getQuantity() <= 0) {
@@ -424,11 +455,26 @@ public class App {
         return button;
     }
 
+    public String getPrioritylevel(int priority) {
+        switch (priority) {
+            case 0:
+                return "Common Item";
+            case 1:
+                return "Hot Seller";
+            case 2:
+                return "New Item";
+            case -1:
+                return "Out of Stock";
+            default:
+                return "Unknown";
+        }
+    }
+
     // Update product buttons in the grid
     public void updateProductDisplay() {
         if (productGridPanel != null) {
             productGridPanel.removeAll();
-
+            vm.getAllProducts();
             List<Product> products = vm.getAllProducts();
             for (Product product : products) {
                 productGridPanel.add(createProductButton(product));
@@ -447,6 +493,20 @@ public class App {
             model.addElement(product.getName() + " - " + product.getPrice() + " THB - Stock: " +
                     product.getQuantity() + " - Priority: " + product.getPriority());
         }
+    }
+
+    public Color getBgColor(int priority) {
+        switch (priority) {
+            case 0:
+                return new Color(52, 152, 219); // Common Item
+            case 1:
+                return new Color(241, 72, 15); // Hot Seller
+            case 2:
+                return new Color(46, 204, 113); // New Item
+            default:
+                return BG_COLOR; // Default color
+        }
+
     }
 
     // Update cart display
@@ -512,10 +572,10 @@ public class App {
             // Add products with priority (lower number = higher priority)
             vendingMachine.addProduct(30, "Coke", 10, 1);
             vendingMachine.addProduct(25, "Pepsi", 10, 2);
-            vendingMachine.addProduct(20, "Sprite", 10, 3);
-            vendingMachine.addProduct(35, "Fanta", 8, 4);
-            vendingMachine.addProduct(40, "Water", 15, 5);
-            vendingMachine.addProduct(45, "Coffee", 5, 6);
+            vendingMachine.addProduct(20, "Sprite", 10, 0);
+            vendingMachine.addProduct(35, "Fanta", 8, 0);
+            vendingMachine.addProduct(40, "Water", 15, 1);
+            vendingMachine.addProduct(45, "Coffee", 5, 2);
 
             App gui = new App(vendingMachine);
             gui.createAndShowGUI();
