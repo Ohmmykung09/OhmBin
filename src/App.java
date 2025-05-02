@@ -4,6 +4,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import java.util.List;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.File;
+import java.io.IOException;
 
 public class App {
     private VendingMachine vm;
@@ -12,7 +16,7 @@ public class App {
     private CardLayout cardLayout;
     private JList<String> cartList;
     private DefaultListModel<String> cartModel;
-    private DefaultListModel<String> productsModel; // Declare productsModel here
+    private DefaultListModel<String> productsModel;
     private JLabel totalPriceLabel;
     private JPanel productGridPanel;
     private final Color PRIMARY_COLOR = new Color(41, 128, 185);
@@ -21,14 +25,55 @@ public class App {
     private final Color TEXT_COLOR = new Color(44, 62, 80);
     private final Font TITLE_FONT = new Font("Arial", Font.BOLD, 24);
     private final Font REGULAR_FONT = new Font("Arial", Font.PLAIN, 14);
-    private final String PASSWORD = "admin123"; // Simple password for admin access
+    private final String PASSWORD = "admin123";
+    private final String ASSET_PATH = "OhmBin/asset/";
+    private Map<String, ImageIcon> productImages = new HashMap<>();
 
     public App(VendingMachine vm) {
         this.vm = vm;
         this.frame = new JFrame("Modern Vending Machine");
         this.cartModel = new DefaultListModel<>();
         this.productsModel = new DefaultListModel<>();
+        loadProductImages();
         setupFrame();
+    }
+
+    private void loadProductImages() {
+        List<Product> products = vm.getAllProducts();
+        for (Product product : products) {
+            try {
+                String imagePath = "../asset/productPic/" + product.getName().toLowerCase() + ".png";
+                System.out.println("Attempting to load image from: " + new File(imagePath).getAbsolutePath());
+                File imageFile = new File(imagePath);
+
+                if (imageFile.exists()) {
+                    BufferedImage img = ImageIO.read(imageFile);
+                    // Scale image to fit the panel
+                    Image scaledImg = img.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+                    ImageIcon icon = new ImageIcon(scaledImg);
+                    productImages.put(product.getName(), icon);
+                } else {
+                    // Create placeholder icon if image not found
+                    BufferedImage placeholder = new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g2d = placeholder.createGraphics();
+                    g2d.setColor(ACCENT_COLOR);
+                    g2d.fillRect(0, 0, 80, 80);
+                    g2d.setColor(Color.WHITE);
+                    g2d.drawString(product.getName().substring(0, 1), 35, 45);
+                    g2d.dispose();
+                    productImages.put(product.getName(), new ImageIcon(placeholder));
+                }
+            } catch (IOException e) {
+                System.err.println("Error loading image for " + product.getName() + ": " + e.getMessage());
+                // Create default icon
+                BufferedImage placeholder = new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g2d = placeholder.createGraphics();
+                g2d.setColor(ACCENT_COLOR);
+                g2d.fillRect(0, 0, 80, 80);
+                g2d.dispose();
+                productImages.put(product.getName(), new ImageIcon(placeholder));
+            }
+        }
     }
 
     private void setupFrame() {
@@ -64,7 +109,7 @@ public class App {
         headerPanel.setBackground(PRIMARY_COLOR);
         headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        JLabel titleLabel = new JLabel("Vending Machine");
+        JLabel titleLabel = new JLabel("Ohmboo the Vending Machine");
         titleLabel.setFont(TITLE_FONT);
         titleLabel.setForeground(Color.WHITE);
 
@@ -129,6 +174,7 @@ public class App {
                 p.addQuantity(1);
                 vm.getCart().calculatePrice();
                 updateCartDisplay();
+                animateCartUpdate(plusBtn);
             } else {
                 JOptionPane.showMessageDialog(frame, "Not enough stock available!", "Error",
                         JOptionPane.ERROR_MESSAGE);
@@ -148,6 +194,7 @@ public class App {
                 vm.getCart().removeFromCart(p);
             }
             updateCartDisplay();
+            animateCartUpdate(minusBtn);
         });
 
         deleteBtn.addActionListener(e -> {
@@ -161,6 +208,7 @@ public class App {
             Product p = vm.getCart().getAllItems().get(idx - 1);
             vm.getCart().removeFromCart(p);
             updateCartDisplay();
+            animateCartUpdate(deleteBtn);
         });
 
         cartControlPanel.add(plusBtn);
@@ -178,6 +226,7 @@ public class App {
             if (vm.getCart().getAllItems().isEmpty()) {
                 JOptionPane.showMessageDialog(frame, "Your cart is empty!", "Checkout", JOptionPane.WARNING_MESSAGE);
             } else {
+                animateCheckout(checkoutBtn);
                 vm.cashOut();
                 updateCartDisplay();
                 updateProductDisplay();
@@ -210,14 +259,34 @@ public class App {
         return panel;
     }
 
-    // warning: this method is not used in the code
     private void showProductDialog(Product product, DefaultListModel<String> productsModel) {
-        JPanel panel = new JPanel(new GridLayout(5, 2, 10, 10));
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBackground(BG_COLOR);
+
+        // Add product image at the top
+        JPanel imagePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        imagePanel.setBackground(BG_COLOR);
+        JLabel imageLabel = new JLabel();
+
+        if (product != null && productImages.containsKey(product.getName())) {
+            imageLabel.setIcon(productImages.get(product.getName()));
+        } else {
+            // Placeholder
+            imageLabel.setIcon(new ImageIcon(new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB)));
+        }
+
+        imagePanel.add(imageLabel);
+        panel.add(imagePanel, BorderLayout.NORTH);
+
+        // Input fields
+        JPanel formPanel = new JPanel(new GridLayout(5, 2, 10, 10));
+        formPanel.setBackground(BG_COLOR);
 
         JTextField nameField = new JTextField(product != null ? product.getName() : "");
         JTextField priceField = new JTextField(product != null ? String.valueOf(product.getPrice()) : "");
         JTextField quantityField = new JTextField(product != null ? String.valueOf(product.getQuantity()) : "");
+        JTextField imagePathField = new JTextField(
+                product != null ? ASSET_PATH + product.getName().toLowerCase() + ".png" : ASSET_PATH);
 
         // Priority dropdown with text labels
         String[] priorities = { "Common Item", "Hot Seller", "New Item" };
@@ -226,14 +295,18 @@ public class App {
             priorityDropdown.setSelectedIndex(product.getPriority());
         }
 
-        panel.add(new JLabel("Product Name:"));
-        panel.add(nameField);
-        panel.add(new JLabel("Product Price (THB):"));
-        panel.add(priceField);
-        panel.add(new JLabel("Product Quantity:"));
-        panel.add(quantityField);
-        panel.add(new JLabel("Product Priority:"));
-        panel.add(priorityDropdown);
+        formPanel.add(new JLabel("Product Name:"));
+        formPanel.add(nameField);
+        formPanel.add(new JLabel("Product Price (THB):"));
+        formPanel.add(priceField);
+        formPanel.add(new JLabel("Product Quantity:"));
+        formPanel.add(quantityField);
+        formPanel.add(new JLabel("Image Path:"));
+        formPanel.add(imagePathField);
+        formPanel.add(new JLabel("Product Priority:"));
+        formPanel.add(priorityDropdown);
+
+        panel.add(formPanel, BorderLayout.CENTER);
 
         int result = JOptionPane.showConfirmDialog(frame, panel,
                 product == null ? "Add New Product" : "Edit Product",
@@ -247,13 +320,44 @@ public class App {
                 int quantity = Integer.parseInt(quantityField.getText().trim());
                 int priority = priorityDropdown.getSelectedIndex(); // Map selected index to integer priority
 
+                // Check for image path validity
+                String imagePath = imagePathField.getText().trim();
+                boolean imageExists = new File(imagePath).exists();
+
                 if (product == null) {
                     // Add new product
                     vm.addProduct(price, name, quantity, priority);
+
+                    // If image path is valid, try to load it
+                    if (imageExists) {
+                        try {
+                            BufferedImage img = ImageIO.read(new File(imagePath));
+                            Image scaledImg = img.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+                            productImages.put(name, new ImageIcon(scaledImg));
+                        } catch (IOException ex) {
+                            System.err.println("Error loading image for " + name);
+                        }
+                    }
                 } else {
                     // Edit existing product
+                    if (!product.getName().equals(name)) {
+                        // Name changed, update image mapping
+                        productImages.remove(product.getName());
+
+                        if (imageExists) {
+                            try {
+                                BufferedImage img = ImageIO.read(new File(imagePath));
+                                Image scaledImg = img.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+                                productImages.put(name, new ImageIcon(scaledImg));
+                            } catch (IOException ex) {
+                                System.err.println("Error loading image for " + name);
+                            }
+                        }
+                    }
+
                     vm.editProduct(id, price, name, quantity, priority);
                 }
+
                 updateProductDisplay();
                 updateProductsList(productsModel);
             } catch (NumberFormatException ex) {
@@ -273,7 +377,7 @@ public class App {
         headerPanel.setBackground(new Color(192, 57, 43)); // Different color for admin
         headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        JLabel titleLabel = new JLabel("Admin Control Panel");
+        JLabel titleLabel = new JLabel("Ohmboo Control Panel");
         titleLabel.setFont(TITLE_FONT);
         titleLabel.setForeground(Color.WHITE);
 
@@ -341,6 +445,7 @@ public class App {
 
                 if (confirm == JOptionPane.YES_OPTION) {
                     vm.removeProduct(p.getName());
+                    productImages.remove(p.getName());
                     updateProductDisplay();
                     updateProductsList(productsModel);
                 }
@@ -366,6 +471,59 @@ public class App {
         return panel;
     }
 
+    // Animation methods
+    private void animateButton(JButton button) {
+        Color originalColor = button.getBackground();
+        button.setBackground(button.getBackground().brighter());
+
+        javax.swing.Timer timer = new javax.swing.Timer(150, e -> {
+            button.setBackground(originalColor);
+        });
+        timer.setRepeats(false);
+        timer.start();
+    }
+
+    private void animateCartUpdate(JButton button) {
+        animateButton(button);
+
+        // Animate total price label
+        Font originalFont = totalPriceLabel.getFont();
+        Color originalColor = totalPriceLabel.getForeground();
+
+        totalPriceLabel.setFont(new Font(originalFont.getName(), Font.BOLD, originalFont.getSize() + 2));
+        totalPriceLabel.setForeground(new Color(231, 76, 60));
+
+        javax.swing.Timer timer = new javax.swing.Timer(300, e -> {
+            totalPriceLabel.setFont(originalFont);
+            totalPriceLabel.setForeground(originalColor);
+        });
+        timer.setRepeats(false);
+        timer.start();
+    }
+
+    private void animateCheckout(JButton button) {
+        // Flash checkout button
+        animateButton(button);
+
+        // Shake cart items
+        javax.swing.Timer shakeTimer = new javax.swing.Timer(50, new ActionListener() {
+            private int count = 0;
+            private final int[] offsets = { 0, 3, 0, -3, 0 };
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (count < offsets.length) {
+                    cartList.setBorder(BorderFactory.createEmptyBorder(5, 5 + offsets[count], 5, 5));
+                    count++;
+                } else {
+                    ((javax.swing.Timer) e.getSource()).stop();
+                    cartList.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+                }
+            }
+        });
+        shakeTimer.start();
+    }
+
     // Helper method to create a styled JButton
     private JButton createStyledButton(String text, Color bgColor) {
         JButton button = new JButton(text);
@@ -376,6 +534,30 @@ public class App {
         button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
         button.setOpaque(true);
         button.setBorderPainted(false);
+
+        // Add hover effect
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(bgColor.brighter());
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(bgColor);
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                button.setBackground(bgColor.darker());
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                button.setBackground(bgColor);
+            }
+        });
+
         return button;
     }
 
@@ -398,10 +580,20 @@ public class App {
         button.setBorder(BorderFactory.createLineBorder(new Color(189, 195, 199), 1, true));
         button.setFocusPainted(false);
 
-        // Product icon panel
-        JPanel iconPanel = new JPanel();
+        // Product icon panel with image
+        JPanel iconPanel = new JPanel(new BorderLayout());
         iconPanel.setBackground(ACCENT_COLOR);
-        iconPanel.setPreferredSize(new Dimension(0, 80));
+        iconPanel.setPreferredSize(new Dimension(0, 100));
+
+        // Add product image
+        JLabel imageLabel = new JLabel();
+        imageLabel.setHorizontalAlignment(JLabel.CENTER);
+
+        if (productImages.containsKey(product.getName())) {
+            imageLabel.setIcon(productImages.get(product.getName()));
+        }
+
+        iconPanel.add(imageLabel, BorderLayout.CENTER);
 
         // Product info panel
         JPanel infoPanel = new JPanel(new GridLayout(4, 1));
@@ -440,6 +632,30 @@ public class App {
             priceLabel.setForeground(new Color(128, 128, 128));
             stockLabel.setForeground(new Color(128, 128, 128));
             priorityLabel.setForeground(new Color(128, 128, 128));
+
+            // Add "out of stock" overlay
+            JLabel outOfStockLabel = new JLabel("OUT OF STOCK");
+            outOfStockLabel.setHorizontalAlignment(JLabel.CENTER);
+            outOfStockLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            outOfStockLabel.setForeground(Color.WHITE);
+            outOfStockLabel.setBackground(new Color(231, 76, 60, 180));
+            outOfStockLabel.setOpaque(true);
+            iconPanel.add(outOfStockLabel, BorderLayout.SOUTH);
+        } else {
+            // Add hover effect for available products
+            button.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    button.setBackground(new Color(245, 245, 245));
+                    iconPanel.setBackground(ACCENT_COLOR.brighter());
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    button.setBackground(Color.WHITE);
+                    iconPanel.setBackground(ACCENT_COLOR);
+                }
+            });
         }
 
         button.addActionListener(e -> {
@@ -447,6 +663,14 @@ public class App {
                 JOptionPane.showMessageDialog(frame, "This product is out of stock!", "Error",
                         JOptionPane.ERROR_MESSAGE);
             } else {
+                // Animate button on click
+                iconPanel.setBackground(ACCENT_COLOR.darker());
+                javax.swing.Timer timer = new javax.swing.Timer(150, event -> {
+                    iconPanel.setBackground(ACCENT_COLOR);
+                });
+                timer.setRepeats(false);
+                timer.start();
+
                 vm.AddToCart(product);
                 updateCartDisplay();
             }
