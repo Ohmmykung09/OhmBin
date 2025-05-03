@@ -14,7 +14,7 @@ public class App {
     private JFrame frame;
     private JPanel cardPanel;
     private CardLayout cardLayout;
-    private JList<String> cartList;
+    private JPanel cartItemsPanel; // Panel to hold cart items with controls
     private DefaultListModel<String> cartModel;
     private DefaultListModel<String> productsModel;
     private JLabel totalPriceLabel;
@@ -43,7 +43,8 @@ public class App {
         for (Product product : products) {
             try {
                 String imagePath = product.getImagePath();
-                System.out.println("Attempting to load image from: " + new File(imagePath).getAbsolutePath());
+                System.out.println(
+                        "Attempting to load image from: " + new File(imagePath).getAbsolutePath());
                 File imageFile = new File(imagePath);
 
                 if (imageFile.exists()) {
@@ -54,7 +55,8 @@ public class App {
                     productImages.put(product.getName(), icon);
                 } else {
                     // Create placeholder icon if image not found
-                    BufferedImage placeholder = new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
+                    BufferedImage placeholder =
+                            new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
                     Graphics2D g2d = placeholder.createGraphics();
                     g2d.setColor(ACCENT_COLOR);
                     g2d.fillRect(0, 0, 80, 80);
@@ -64,7 +66,8 @@ public class App {
                     productImages.put(product.getName(), new ImageIcon(placeholder));
                 }
             } catch (IOException e) {
-                System.err.println("Error loading image for " + product.getName() + ": " + e.getMessage());
+                System.err.println(
+                        "Error loading image for " + product.getName() + ": " + e.getMessage());
                 // Create default icon
                 BufferedImage placeholder = new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
                 Graphics2D g2d = placeholder.createGraphics();
@@ -148,78 +151,14 @@ public class App {
         cartContainer.setBorder(createRoundedBorder("Your Cart", 10));
         cartContainer.setPreferredSize(new Dimension(300, 0));
 
-        cartList = new JList<>(cartModel);
-        cartList.setFont(REGULAR_FONT);
-        cartList.setBackground(Color.WHITE);
-        cartList.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        cartItemsPanel = new JPanel();
+        cartItemsPanel.setLayout(new BoxLayout(cartItemsPanel, BoxLayout.Y_AXIS));
+        cartItemsPanel.setBackground(Color.WHITE);
+        cartItemsPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        cartItemsPanel.setAlignmentY(Component.TOP_ALIGNMENT);
 
-        JScrollPane cartScroll = new JScrollPane(cartList);
+        JScrollPane cartScroll = new JScrollPane(cartItemsPanel);
         cartScroll.setBorder(null);
-
-        JPanel cartControlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        cartControlPanel.setBackground(BG_COLOR);
-
-        JButton plusBtn = createStyledButton("+", ACCENT_COLOR);
-        JButton minusBtn = createStyledButton("-", ACCENT_COLOR);
-        JButton deleteBtn = createStyledButton("Remove", ACCENT_COLOR);
-
-        plusBtn.addActionListener(e -> {
-            int idx = cartList.getSelectedIndex();
-            if (idx < 0) { // Adjusted index check
-                JOptionPane.showMessageDialog(frame, "Please select an item to increase quantity.", "Error",
-                        JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            Product p = vm.getCart().getAllItems().get(idx); // Adjusted index usage
-            Product originalProduct = vm.getAllProducts().stream()
-                    .filter(prod -> prod.getId() == p.getId())
-                    .findFirst()
-                    .orElse(null);
-
-            if (originalProduct != null && p.getQuantity() < originalProduct.getQuantity()) {
-                p.addQuantity(1);
-                vm.getCart().calculatePrice();
-                updateCartDisplay();
-                animateCartUpdate(plusBtn);
-            } else {
-                JOptionPane.showMessageDialog(frame, "Not enough stock available!", "Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        minusBtn.addActionListener(e -> {
-            int idx = cartList.getSelectedIndex();
-            if (idx < 0) return; // Adjusted index check
-
-            Product p = vm.getCart().getAllItems().get(idx); // Adjusted index usage
-            if (p.getQuantity() > 1) {
-                p.addQuantity(-1);
-                vm.getCart().calculatePrice();
-            } else {
-                vm.getCart().removeFromCart(p);
-            }
-            updateCartDisplay();
-            animateCartUpdate(minusBtn);
-        });
-
-        deleteBtn.addActionListener(e -> {
-            int idx = cartList.getSelectedIndex();
-            if (idx < 0) { // Adjusted index check
-                JOptionPane.showMessageDialog(frame, "Please select an item to remove.", "Error",
-                        JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            Product p = vm.getCart().getAllItems().get(idx); // Adjusted index usage
-            vm.getCart().removeFromCart(p);
-            updateCartDisplay();
-            animateCartUpdate(deleteBtn);
-        });
-
-        cartControlPanel.add(plusBtn);
-        cartControlPanel.add(minusBtn);
-        cartControlPanel.add(deleteBtn);
 
         totalPriceLabel = new JLabel("Total: 0 THB");
         totalPriceLabel.setFont(new Font("Arial", Font.BOLD, 16));
@@ -237,7 +176,8 @@ public class App {
         }
         checkoutBtn.addActionListener(e -> {
             if (vm.getCart().getAllItems().isEmpty()) {
-                JOptionPane.showMessageDialog(frame, "Your cart is empty!", "Checkout", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(frame, "Your cart is empty!", "Checkout",
+                        JOptionPane.WARNING_MESSAGE);
             } else {
                 animateCheckout(checkoutBtn);
                 vm.cashOut();
@@ -255,7 +195,6 @@ public class App {
         checkoutPanel.add(checkoutBtn, BorderLayout.EAST);
 
         cartContainer.add(cartScroll, BorderLayout.CENTER);
-        cartContainer.add(cartControlPanel, BorderLayout.NORTH);
         cartContainer.add(checkoutPanel, BorderLayout.SOUTH);
 
         updateCartDisplay();
@@ -285,7 +224,8 @@ public class App {
             imageLabel.setIcon(productImages.get(product.getName()));
         } else {
             // Placeholder
-            imageLabel.setIcon(new ImageIcon(new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB)));
+            imageLabel
+                    .setIcon(new ImageIcon(new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB)));
         }
 
         imagePanel.add(imageLabel);
@@ -296,12 +236,15 @@ public class App {
         formPanel.setBackground(BG_COLOR);
 
         JTextField nameField = new JTextField(product != null ? product.getName() : "");
-        JTextField priceField = new JTextField(product != null ? String.valueOf(product.getPrice()) : "");
-        JTextField quantityField = new JTextField(product != null ? String.valueOf(product.getQuantity()) : "");
-        JTextField imagePathField = new JTextField(product != null ? ASSET_PATH + product.getName().toLowerCase() + ".png" : "");
+        JTextField priceField =
+                new JTextField(product != null ? String.valueOf(product.getPrice()) : "");
+        JTextField quantityField =
+                new JTextField(product != null ? String.valueOf(product.getQuantity()) : "");
+        JTextField imagePathField = new JTextField(
+                product != null ? ASSET_PATH + product.getName().toLowerCase() + ".png" : "");
 
         // Priority dropdown with text labels
-        String[] priorities = { "Common Item", "Hot Seller", "New Item" };
+        String[] priorities = {"Common Item", "Hot Seller", "New Item"};
         JComboBox<String> priorityDropdown = new JComboBox<>(priorities);
         if (product != null) {
             priorityDropdown.setSelectedIndex(product.getPriority());
@@ -342,16 +285,19 @@ public class App {
         panel.add(formPanel, BorderLayout.CENTER);
 
         int result = JOptionPane.showConfirmDialog(frame, panel,
-                product == null ? "Add New Product" : "Edit Product",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                product == null ? "Add New Product" : "Edit Product", JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
             try {
-                int id = product != null ? product.getId() : vm.getAllProducts().size() + 1; // Generate new ID
+                int id = product != null ? product.getId() : vm.getAllProducts().size() + 1; // Generate
+                                                                                             // new
+                                                                                             // ID
                 String name = nameField.getText().trim();
                 int price = Integer.parseInt(priceField.getText().trim());
                 int quantity = Integer.parseInt(quantityField.getText().trim());
-                int priority = priorityDropdown.getSelectedIndex(); // Map selected index to integer priority
+                int priority = priorityDropdown.getSelectedIndex(); // Map selected index to integer
+                                                                    // priority
 
                 // Check for image path validity
                 String imagePath = imagePathField.getText().trim();
@@ -395,7 +341,8 @@ public class App {
                 updateProductDisplay();
                 updateProductsList(productsModel);
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(frame, "Please enter valid numbers for price, quantity, and priority.",
+                JOptionPane.showMessageDialog(frame,
+                        "Please enter valid numbers for price, quantity, and priority.",
                         "Input Error", JOptionPane.ERROR_MESSAGE);
             }
         }
@@ -459,7 +406,8 @@ public class App {
 
         JButton addButton = createStyledButton("Add New Product", new Color(39, 174, 96));
         JButton editButton = createStyledButton("Edit Selected Product", new Color(41, 128, 185));
-        JButton removeButton = createStyledButton("Remove Selected Product", new Color(192, 57, 43));
+        JButton removeButton =
+                createStyledButton("Remove Selected Product", new Color(192, 57, 43));
 
         addButton.addActionListener(e -> {
             showProductDialog(null, productsModel);
@@ -481,8 +429,8 @@ public class App {
             if (selectedIndex >= 0) {
                 Product p = vm.getAllProducts().get(selectedIndex);
                 int confirm = JOptionPane.showConfirmDialog(frame,
-                        "Are you sure you want to remove " + p.getName() + "?",
-                        "Confirm Removal", JOptionPane.YES_NO_OPTION);
+                        "Are you sure you want to remove " + p.getName() + "?", "Confirm Removal",
+                        JOptionPane.YES_NO_OPTION);
 
                 if (confirm == JOptionPane.YES_OPTION) {
                     vm.removeProduct(p.getName());
@@ -531,7 +479,8 @@ public class App {
         Font originalFont = totalPriceLabel.getFont();
         Color originalColor = totalPriceLabel.getForeground();
 
-        totalPriceLabel.setFont(new Font(originalFont.getName(), Font.BOLD, originalFont.getSize() + 2));
+        totalPriceLabel
+                .setFont(new Font(originalFont.getName(), Font.BOLD, originalFont.getSize() + 2));
         totalPriceLabel.setForeground(new Color(231, 76, 60));
 
         javax.swing.Timer timer = new javax.swing.Timer(300, e -> {
@@ -549,16 +498,17 @@ public class App {
         // Shake cart items
         javax.swing.Timer shakeTimer = new javax.swing.Timer(50, new ActionListener() {
             private int count = 0;
-            private final int[] offsets = { 0, 3, 0, -3, 0 };
+            private final int[] offsets = {0, 3, 0, -3, 0};
 
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (count < offsets.length) {
-                    cartList.setBorder(BorderFactory.createEmptyBorder(5, 5 + offsets[count], 5, 5));
+                    cartItemsPanel.setBorder(
+                            BorderFactory.createEmptyBorder(5, 5 + offsets[count], 5, 5));
                     count++;
                 } else {
                     ((javax.swing.Timer) e.getSource()).stop();
-                    cartList.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+                    cartItemsPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
                 }
             }
         });
@@ -605,8 +555,7 @@ public class App {
     // Helper method to create rounded title border
     private Border createRoundedBorder(String title, int radius) {
         TitledBorder titledBorder = BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(189, 195, 199), 1, true),
-                title);
+                BorderFactory.createLineBorder(new Color(189, 195, 199), 1, true), title);
         titledBorder.setTitleFont(new Font("Arial", Font.BOLD, 16));
         titledBorder.setTitleColor(TEXT_COLOR);
         return titledBorder;
@@ -753,8 +702,8 @@ public class App {
         model.clear();
         List<Product> products = vm.getAllProducts();
         for (Product product : products) {
-            model.addElement(product.getName() + " - " + product.getPrice() + " THB - Stock: " +
-                    product.getQuantity() + " - Priority: " + product.getPriority());
+            model.addElement(product.getName() + " - " + product.getPrice() + " THB - Stock: "
+                    + product.getQuantity() + " - Priority: " + product.getPriority());
         }
     }
 
@@ -774,14 +723,82 @@ public class App {
 
     // Update cart display
     public void updateCartDisplay() {
-        cartModel.clear();
-
+        cartModel.clear(); // Not used anymore, but kept for compatibility
+        cartItemsPanel.removeAll();
         List<Product> cartItems = vm.getCart().getAllItems();
-        for (Product product : cartItems) {
-            cartModel.addElement(
-                    product.getName() + " - " + product.getQuantity() + " x " + product.getPrice() + " THB");
-        }
+        for (int i = 0; i < cartItems.size(); i++) {
+            Product product = cartItems.get(i);
+            JPanel itemPanel = new JPanel(new BorderLayout(5, 0));
+            itemPanel.setBackground(Color.WHITE);
+            itemPanel.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(220, 220, 220)),
+                    BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+            itemPanel.setAlignmentY(Component.TOP_ALIGNMENT);
 
+            JLabel infoLabel = new JLabel(product.getName() + " - " + product.getQuantity() + " x "
+                    + product.getPrice() + " THB");
+            infoLabel.setFont(REGULAR_FONT);
+            infoLabel.setForeground(TEXT_COLOR);
+            infoLabel.setVerticalAlignment(SwingConstants.CENTER);
+
+            JPanel buttonPanel = new JPanel();
+            buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
+            buttonPanel.setBackground(Color.WHITE);
+            buttonPanel.setAlignmentY(Component.CENTER_ALIGNMENT);
+
+            JButton plusBtn = createStyledButton("+", ACCENT_COLOR);
+            JButton minusBtn = createStyledButton("-", ACCENT_COLOR);
+            JButton deleteBtn = createStyledButton("Remove", ACCENT_COLOR);
+            plusBtn.setAlignmentY(Component.CENTER_ALIGNMENT);
+            minusBtn.setAlignmentY(Component.CENTER_ALIGNMENT);
+            deleteBtn.setAlignmentY(Component.CENTER_ALIGNMENT);
+
+            int idx = i; // for lambda
+            plusBtn.addActionListener(e -> {
+                Product p = vm.getCart().getAllItems().get(idx);
+                Product originalProduct = vm.getAllProducts().stream()
+                        .filter(prod -> prod.getId() == p.getId()).findFirst().orElse(null);
+                if (originalProduct != null && p.getQuantity() < originalProduct.getQuantity()) {
+                    p.addQuantity(1);
+                    vm.getCart().calculatePrice();
+                    updateCartDisplay();
+                    animateCartUpdate(plusBtn);
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Not enough stock available!", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            });
+            minusBtn.addActionListener(e -> {
+                Product p = vm.getCart().getAllItems().get(idx);
+                if (p.getQuantity() > 1) {
+                    p.addQuantity(-1);
+                    vm.getCart().calculatePrice();
+                } else {
+                    vm.getCart().removeFromCart(p);
+                }
+                updateCartDisplay();
+                animateCartUpdate(minusBtn);
+            });
+            deleteBtn.addActionListener(e -> {
+                Product p = vm.getCart().getAllItems().get(idx);
+                vm.getCart().removeFromCart(p);
+                updateCartDisplay();
+                animateCartUpdate(deleteBtn);
+            });
+
+            buttonPanel.add(plusBtn);
+            buttonPanel.add(Box.createHorizontalStrut(5));
+            buttonPanel.add(minusBtn);
+            buttonPanel.add(Box.createHorizontalStrut(5));
+            buttonPanel.add(deleteBtn);
+
+            itemPanel.add(infoLabel, BorderLayout.CENTER);
+            itemPanel.add(buttonPanel, BorderLayout.EAST);
+
+            cartItemsPanel.add(itemPanel);
+        }
+        cartItemsPanel.revalidate();
+        cartItemsPanel.repaint();
         totalPriceLabel.setText("Total: " + vm.getCart().getSumPrice() + " THB");
     }
 
@@ -790,16 +807,16 @@ public class App {
         JPasswordField passwordField = new JPasswordField();
         passwordField.setFont(REGULAR_FONT);
 
-        int result = JOptionPane.showConfirmDialog(frame, passwordField,
-                "Enter Secret Code:", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        int result = JOptionPane.showConfirmDialog(frame, passwordField, "Enter Secret Code:",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
             String password = new String(passwordField.getPassword());
             if (PASSWORD.equals(password)) {
                 cardLayout.show(cardPanel, "admin");
             } else {
-                JOptionPane.showMessageDialog(frame, "Incorrect password!",
-                        "Access Denied", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(frame, "Incorrect password!", "Access Denied",
+                        JOptionPane.ERROR_MESSAGE);
             }
         }
     }
