@@ -40,6 +40,7 @@ public class App {
         setupMusic();
         frame.setVisible(true);
     }
+
     private void setupMusic() {
         Bgm = new MusicPlayer();
         Bgm.playMusic("assets/Music/FinalBgm.wav");
@@ -755,7 +756,7 @@ public class App {
 
             JButton plusBtn = createStyledButton("+", ACCENT_COLOR);
             JButton minusBtn = createStyledButton("-", ACCENT_COLOR);
-            JButton deleteBtn = createStyledButton("Remove", ACCENT_COLOR);
+            JButton deleteBtn = createStyledButton("x", ACCENT_COLOR);
             plusBtn.setAlignmentY(Component.CENTER_ALIGNMENT);
             minusBtn.setAlignmentY(Component.CENTER_ALIGNMENT);
             deleteBtn.setAlignmentY(Component.CENTER_ALIGNMENT);
