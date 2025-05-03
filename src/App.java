@@ -11,6 +11,7 @@ import java.io.IOException;
 
 public class App {
     private VendingMachine vm;
+    private MusicPlayer Bgm;
     private JFrame frame;
     private JPanel cardPanel;
     private CardLayout cardLayout;
@@ -36,6 +37,12 @@ public class App {
         this.productsModel = new DefaultListModel<>();
         loadProductImages();
         setupFrame();
+        setupMusic();
+        frame.setVisible(true);
+    }
+    private void setupMusic() {
+        Bgm = new MusicPlayer();
+        Bgm.playMusic("assets/Music/Bgm.wav");
     }
 
     private void loadProductImages() {
