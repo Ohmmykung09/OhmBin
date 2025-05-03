@@ -42,7 +42,7 @@ public class App {
     }
     private void setupMusic() {
         Bgm = new MusicPlayer();
-        Bgm.playMusic("assets/Music/Bgm.wav");
+        Bgm.playMusic("assets/Music/FinalBgm.wav");
     }
 
     private void loadProductImages() {
