@@ -33,7 +33,7 @@ public class VendingMachine {
             }
         }
 
-        Product Added = new Product(P.getId(), P.getName(), P.getPrice(), 1, P.getPriority());
+        Product Added = new Product(P.getId(), P.getName(), P.getPrice(), 1, P.getPriority(),P.getImagePath());
         cart.addToCart(Added);
         cart.calculatePrice();
     }
@@ -53,7 +53,7 @@ public class VendingMachine {
                         product.setPriority(-1); // Mark as out of stock
                         Scr.removeProduct(product.getName()); // Dequeue the product
                         Scr.addProduct(product.getPrice(), product.getName(), product.getQuantity(),
-                                product.getPriority()); // Enqueue it again
+                                product.getPriority(),product.getImagePath()); // Enqueue it again
                     }
                     product.UpdateSale(cartItem.getQuantity());
                     break;
@@ -63,8 +63,8 @@ public class VendingMachine {
         cart.clearCart();
     }
 
-    public void editProduct(int id, int price, String name, int quantity, int priority) {
-        Scr.editProduct(id, price, name, quantity, priority);
+    public void editProduct(int id, int price, String name, int quantity, int priority, String imagePath) {
+        Scr.editProduct(id, price, name, quantity, priority, imagePath);
     }
 
     public void removeProductFromScreen(String name) {
@@ -110,8 +110,8 @@ public class VendingMachine {
         return this.Scr;
     }
 
-    public void addProduct(int price, String name, int quantity, int priority) {
-        Scr.addProduct(price, name, quantity, priority);
+    public void addProduct(int price, String name, int quantity, int priority, String imagePath) {
+        Scr.addProduct(price, name, quantity, priority, imagePath);
     }
 
     public void removeProduct(String name) {

@@ -6,7 +6,8 @@ class Product{
     private int price;
     private Product next;
     private int priority;
-    public Product(int id,String name,int price,int quantity,int priority){
+    public String imagePath;
+    public Product(int id,String name,int price,int quantity,int priority,String imagePath){
         this.id = id;
         this.name = name;
         this.price = price;
@@ -14,6 +15,7 @@ class Product{
         this.total_sale = 0;
         this.next = null;
         this.priority = priority;
+        this.imagePath = imagePath;
     }
 
     public int getId(){
@@ -64,5 +66,13 @@ class Product{
 
     public void setNext(Product P){
         this.next = P;
+    }
+
+    public String getImagePath(){
+        return this.imagePath;
+    }
+
+    public void setImagePath(String path){
+        this.imagePath = path;
     }
 }

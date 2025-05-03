@@ -42,7 +42,7 @@ public class App {
         List<Product> products = vm.getAllProducts();
         for (Product product : products) {
             try {
-                String imagePath = "../asset/productPic/" + product.getName().toLowerCase() + ".png";
+                String imagePath = product.getImagePath();
                 System.out.println("Attempting to load image from: " + new File(imagePath).getAbsolutePath());
                 File imageFile = new File(imagePath);
 
@@ -279,14 +279,13 @@ public class App {
         panel.add(imagePanel, BorderLayout.NORTH);
 
         // Input fields
-        JPanel formPanel = new JPanel(new GridLayout(5, 2, 10, 10));
+        JPanel formPanel = new JPanel(new GridLayout(6, 2, 10, 10));
         formPanel.setBackground(BG_COLOR);
 
         JTextField nameField = new JTextField(product != null ? product.getName() : "");
         JTextField priceField = new JTextField(product != null ? String.valueOf(product.getPrice()) : "");
         JTextField quantityField = new JTextField(product != null ? String.valueOf(product.getQuantity()) : "");
-        JTextField imagePathField = new JTextField(
-                product != null ? ASSET_PATH + product.getName().toLowerCase() + ".png" : ASSET_PATH);
+        JTextField imagePathField = new JTextField(product != null ? ASSET_PATH + product.getName().toLowerCase() + ".png" : "");
 
         // Priority dropdown with text labels
         String[] priorities = { "Common Item", "Hot Seller", "New Item" };
@@ -295,16 +294,37 @@ public class App {
             priorityDropdown.setSelectedIndex(product.getPriority());
         }
 
+        JButton browseButton = createStyledButton("Browse", ACCENT_COLOR);
+        browseButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            int result = fileChooser.showOpenDialog(frame);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+                imagePathField.setText(selectedFile.getAbsolutePath());
+
+                // Update the image preview
+                try {
+                    BufferedImage img = ImageIO.read(selectedFile);
+                    Image scaledImg = img.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+                    imageLabel.setIcon(new ImageIcon(scaledImg));
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(frame, "Error loading image: " + ex.getMessage(),
+                            "Image Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
         formPanel.add(new JLabel("Product Name:"));
         formPanel.add(nameField);
         formPanel.add(new JLabel("Product Price (THB):"));
         formPanel.add(priceField);
         formPanel.add(new JLabel("Product Quantity:"));
         formPanel.add(quantityField);
-        formPanel.add(new JLabel("Image Path:"));
-        formPanel.add(imagePathField);
         formPanel.add(new JLabel("Product Priority:"));
         formPanel.add(priorityDropdown);
+        formPanel.add(new JLabel("Upload Image:"));
+        formPanel.add(browseButton);
 
         panel.add(formPanel, BorderLayout.CENTER);
 
@@ -326,7 +346,7 @@ public class App {
 
                 if (product == null) {
                     // Add new product
-                    vm.addProduct(price, name, quantity, priority);
+                    vm.addProduct(price, name, quantity, priority, imagePath);
 
                     // If image path is valid, try to load it
                     if (imageExists) {
@@ -343,21 +363,22 @@ public class App {
                     if (!product.getName().equals(name)) {
                         // Name changed, update image mapping
                         productImages.remove(product.getName());
+                    }
 
-                        if (imageExists) {
-                            try {
-                                BufferedImage img = ImageIO.read(new File(imagePath));
-                                Image scaledImg = img.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
-                                productImages.put(name, new ImageIcon(scaledImg));
-                            } catch (IOException ex) {
-                                System.err.println("Error loading image for " + name);
-                            }
+                    if (imageExists) {
+                        try {
+                            BufferedImage img = ImageIO.read(new File(imagePath));
+                            Image scaledImg = img.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+                            productImages.put(name, new ImageIcon(scaledImg));
+                        } catch (IOException ex) {
+                            System.err.println("Error loading image for " + name);
                         }
                     }
 
-                    vm.editProduct(id, price, name, quantity, priority);
+                    vm.editProduct(id, price, name, quantity, priority, imagePath);
                 }
 
+                // Refresh product display
                 updateProductDisplay();
                 updateProductsList(productsModel);
             } catch (NumberFormatException ex) {
@@ -794,12 +815,12 @@ public class App {
         SwingUtilities.invokeLater(() -> {
             VendingMachine vendingMachine = new VendingMachine();
             // Add products with priority (lower number = higher priority)
-            vendingMachine.addProduct(30, "Coke", 10, 1);
-            vendingMachine.addProduct(25, "Pepsi", 10, 2);
-            vendingMachine.addProduct(20, "Sprite", 10, 0);
-            vendingMachine.addProduct(35, "Fanta", 8, 0);
-            vendingMachine.addProduct(40, "Water", 15, 1);
-            vendingMachine.addProduct(45, "Coffee", 5, 2);
+            vendingMachine.addProduct(30, "Coke", 10, 1, "assets/productPic/Coke.png");
+            vendingMachine.addProduct(25, "Pepsi", 10, 2, "assets/productPic/Pepsi.png");
+            vendingMachine.addProduct(20, "Sprite", 10, 0, "assets/productPic/Sprite.png");
+            vendingMachine.addProduct(35, "Fanta", 8, 0, "assets/productPic/Fanta.png");
+            vendingMachine.addProduct(40, "Water", 15, 1, "assets/productPic/Water.png");
+            vendingMachine.addProduct(45, "Coffee", 5, 2, "assets/productPic/Coffee.png");
 
             App gui = new App(vendingMachine);
             gui.createAndShowGUI();
