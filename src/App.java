@@ -113,7 +113,14 @@ public class App {
         titleLabel.setFont(TITLE_FONT);
         titleLabel.setForeground(Color.WHITE);
 
-        JButton adminButton = createStyledButton("Admin", ACCENT_COLOR);
+        JButton adminButton = createStyledButton("", ACCENT_COLOR);
+        try {
+            BufferedImage adminIcon = ImageIO.read(new File("assets/IconPic/AdminIcon.png"));
+            Image scaledIcon = adminIcon.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+            adminButton.setIcon(new ImageIcon(scaledIcon));
+        } catch (IOException e) {
+            System.err.println("Error loading admin icon: " + e.getMessage());
+        }
         adminButton.addActionListener(e -> promptAdminPassword());
 
         headerPanel.add(titleLabel, BorderLayout.WEST);
@@ -158,13 +165,13 @@ public class App {
 
         plusBtn.addActionListener(e -> {
             int idx = cartList.getSelectedIndex();
-            if (idx <= 0) {
+            if (idx < 0) { // Adjusted index check
                 JOptionPane.showMessageDialog(frame, "Please select an item to increase quantity.", "Error",
                         JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            Product p = vm.getCart().getAllItems().get(idx - 1);
+            Product p = vm.getCart().getAllItems().get(idx); // Adjusted index usage
             Product originalProduct = vm.getAllProducts().stream()
                     .filter(prod -> prod.getId() == p.getId())
                     .findFirst()
@@ -183,10 +190,9 @@ public class App {
 
         minusBtn.addActionListener(e -> {
             int idx = cartList.getSelectedIndex();
-            if (idx <= 0)
-                return;
+            if (idx < 0) return; // Adjusted index check
 
-            Product p = vm.getCart().getAllItems().get(idx - 1);
+            Product p = vm.getCart().getAllItems().get(idx); // Adjusted index usage
             if (p.getQuantity() > 1) {
                 p.addQuantity(-1);
                 vm.getCart().calculatePrice();
@@ -199,13 +205,13 @@ public class App {
 
         deleteBtn.addActionListener(e -> {
             int idx = cartList.getSelectedIndex();
-            if (idx <= 0) {
+            if (idx < 0) { // Adjusted index check
                 JOptionPane.showMessageDialog(frame, "Please select an item to remove.", "Error",
                         JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            Product p = vm.getCart().getAllItems().get(idx - 1);
+            Product p = vm.getCart().getAllItems().get(idx); // Adjusted index usage
             vm.getCart().removeFromCart(p);
             updateCartDisplay();
             animateCartUpdate(deleteBtn);
@@ -220,8 +226,15 @@ public class App {
         totalPriceLabel.setForeground(TEXT_COLOR);
         totalPriceLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JButton checkoutBtn = createStyledButton("Checkout", PRIMARY_COLOR);
+        JButton checkoutBtn = createStyledButton("", PRIMARY_COLOR);
         checkoutBtn.setFont(new Font("Arial", Font.BOLD, 16));
+        try {
+            BufferedImage cartIcon = ImageIO.read(new File("assets/IconPic/CartIcon.png"));
+            Image scaledIcon = cartIcon.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+            checkoutBtn.setIcon(new ImageIcon(scaledIcon));
+        } catch (IOException e) {
+            System.err.println("Error loading cart icon: " + e.getMessage());
+        }
         checkoutBtn.addActionListener(e -> {
             if (vm.getCart().getAllItems().isEmpty()) {
                 JOptionPane.showMessageDialog(frame, "Your cart is empty!", "Checkout", JOptionPane.WARNING_MESSAGE);
@@ -402,7 +415,14 @@ public class App {
         titleLabel.setFont(TITLE_FONT);
         titleLabel.setForeground(Color.WHITE);
 
-        JButton backButton = createStyledButton("Back to Shop", new Color(231, 76, 60));
+        JButton backButton = createStyledButton("", new Color(231, 76, 60));
+        try {
+            BufferedImage backIcon = ImageIO.read(new File("assets/IconPic/BackIcon.png"));
+            Image scaledIcon = backIcon.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+            backButton.setIcon(new ImageIcon(scaledIcon));
+        } catch (IOException e) {
+            System.err.println("Error loading cart icon: " + e.getMessage());
+        }
         backButton.addActionListener(e -> cardLayout.show(cardPanel, "customer"));
 
         headerPanel.add(titleLabel, BorderLayout.WEST);
@@ -592,8 +612,6 @@ public class App {
         return titledBorder;
     }
 
-    // Create product button with image placeholder, name, price, stock, and
-    // priority
     private JButton createProductButton(Product product) {
         JButton button = new JButton();
         button.setLayout(new BorderLayout(5, 5));
@@ -749,7 +767,7 @@ public class App {
             case 2:
                 return new Color(46, 204, 113); // New Item
             default:
-                return BG_COLOR; // Default color
+                return BG_COLOR;
         }
 
     }
@@ -757,7 +775,6 @@ public class App {
     // Update cart display
     public void updateCartDisplay() {
         cartModel.clear();
-        cartModel.addElement("Total: " + vm.getCart().getSumPrice() + " THB");
 
         List<Product> cartItems = vm.getCart().getAllItems();
         for (Product product : cartItems) {
@@ -774,7 +791,7 @@ public class App {
         passwordField.setFont(REGULAR_FONT);
 
         int result = JOptionPane.showConfirmDialog(frame, passwordField,
-                "Enter Admin Password:", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                "Enter Secret Code:", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
             String password = new String(passwordField.getPassword());
