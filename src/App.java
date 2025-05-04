@@ -63,8 +63,7 @@ public class App {
                     productImages.put(product.getName(), icon);
                 } else {
                     // Create placeholder icon if image not found
-                    BufferedImage placeholder =
-                            new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
+                    BufferedImage placeholder = new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
                     Graphics2D g2d = placeholder.createGraphics();
                     g2d.setColor(ACCENT_COLOR);
                     g2d.fillRect(0, 0, 80, 80);
@@ -225,9 +224,18 @@ public class App {
                         JLabel qrLabel = new JLabel();
                         qrLabel.setHorizontalAlignment(JLabel.CENTER);
                         try {
-                            BufferedImage qrImage = ImageIO.read(new File("assets/QRcode/ThanabunQR.png"));
-                            Image scaledQrImage = qrImage.getScaledInstance(200, 200, Image.SCALE_SMOOTH);
-                            qrLabel.setIcon(new ImageIcon(scaledQrImage));
+                            File qrFolder = new File("assets/QRcode");
+                            File[] qrFiles = qrFolder.listFiles((dir, name) -> name.toLowerCase().endsWith(".png"));
+                            if (qrFiles != null && qrFiles.length > 0) {
+                                Random random = new Random();
+                                File randomQrFile = qrFiles[random.nextInt(qrFiles.length)];
+                                BufferedImage qrImage = ImageIO.read(randomQrFile);
+                                Image scaledQrImage = qrImage.getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+                                qrLabel.setIcon(new ImageIcon(scaledQrImage));
+                            } else {
+                                JOptionPane.showMessageDialog(frame, "No QR code images found in the folder.", "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+                            }
                         } catch (IOException ex) {
                             JOptionPane.showMessageDialog(frame, "Error loading QR code image: " + ex.getMessage(),
                                     "Image Error", JOptionPane.ERROR_MESSAGE);
@@ -320,15 +328,13 @@ public class App {
         formPanel.setBackground(BG_COLOR);
 
         JTextField nameField = new JTextField(product != null ? product.getName() : "");
-        JTextField priceField =
-                new JTextField(product != null ? String.valueOf(product.getPrice()) : "");
-        JTextField quantityField =
-                new JTextField(product != null ? String.valueOf(product.getQuantity()) : "");
+        JTextField priceField = new JTextField(product != null ? String.valueOf(product.getPrice()) : "");
+        JTextField quantityField = new JTextField(product != null ? String.valueOf(product.getQuantity()) : "");
         JTextField imagePathField = new JTextField(
                 product != null ? ASSET_PATH + product.getName().toLowerCase() + ".png" : "");
 
         // Priority dropdown with text labels
-        String[] priorities = {"Common Item", "Hot Seller", "New Item"};
+        String[] priorities = { "Common Item", "Hot Seller", "New Item" };
         JComboBox<String> priorityDropdown = new JComboBox<>(priorities);
         if (product != null) {
             priorityDropdown.setSelectedIndex(product.getPriority());
@@ -490,8 +496,7 @@ public class App {
 
         JButton addButton = createStyledButton("Add New Product", new Color(39, 174, 96));
         JButton editButton = createStyledButton("Edit Selected Product", new Color(41, 128, 185));
-        JButton removeButton =
-                createStyledButton("Remove Selected Product", new Color(192, 57, 43));
+        JButton removeButton = createStyledButton("Remove Selected Product", new Color(192, 57, 43));
 
         addButton.addActionListener(e -> {
             showProductDialog(null, productsModel);
@@ -582,7 +587,7 @@ public class App {
         // Shake cart items
         javax.swing.Timer shakeTimer = new javax.swing.Timer(50, new ActionListener() {
             private int count = 0;
-            private final int[] offsets = {0, 3, 0, -3, 0};
+            private final int[] offsets = { 0, 3, 0, -3, 0 };
 
             @Override
             public void actionPerformed(ActionEvent e) {
