@@ -9,18 +9,20 @@ public class Screen {
         this.id = 1;
     }
 
-    public void addProduct(int price, String name, int quantity, int priority,String imagePath) {
-        Product P = new Product(this.id, name, price, quantity, priority,imagePath);
+    public void addProduct(int price, String name, int quantity, int priority, String imagePath) {
+        Product P = new Product(this.id, name, price, quantity, priority, imagePath);
         id++;
         this.PQ.enQueue(P);
     }
 
-    public void editProduct(int id, int price, String name, int quantity, int priority,String imagePath) {
+    public void editProduct(int id, int price, String name, int quantity, int priority,
+            String imagePath) {
         while (!PQ.isEmpty()) {
             Product temp = PQ.front();
             PQ.deQueue();
             if (temp.getId() == id) {
-                Product edited = new Product(temp.getId(), name, price, quantity, priority,imagePath);
+                Product edited =
+                        new Product(temp.getId(), name, price, quantity, priority, imagePath);
                 Q.enQueue(edited);
             } else {
                 Q.enQueue(temp);

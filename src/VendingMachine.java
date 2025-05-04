@@ -13,7 +13,8 @@ public class VendingMachine {
 
     public void AddToCart(Product P) {
         if (P.getQuantity() <= 0) {
-            JOptionPane.showMessageDialog(null, "This product is out of stock!", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "This product is out of stock!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -31,7 +32,8 @@ public class VendingMachine {
             }
         }
 
-        Product Added = new Product(P.getId(), P.getName(), P.getPrice(), 1, P.getPriority(),P.getImagePath());
+        Product Added = new Product(P.getId(), P.getName(), P.getPrice(), 1, P.getPriority(),
+                P.getImagePath());
         cart.addToCart(Added);
         cart.calculatePrice();
     }
@@ -51,7 +53,7 @@ public class VendingMachine {
                         product.setPriority(-1); // Mark as out of stock
                         Scr.removeProduct(product.getName()); // Dequeue the product
                         Scr.addProduct(product.getPrice(), product.getName(), product.getQuantity(),
-                                product.getPriority(),product.getImagePath()); // Enqueue it again
+                                product.getPriority(), product.getImagePath()); // Enqueue it again
                     }
                     product.UpdateSale(cartItem.getQuantity());
                     break;
@@ -61,7 +63,8 @@ public class VendingMachine {
         cart.clearCart();
     }
 
-    public void editProduct(int id, int price, String name, int quantity, int priority, String imagePath) {
+    public void editProduct(int id, int price, String name, int quantity, int priority,
+            String imagePath) {
         Scr.editProduct(id, price, name, quantity, priority, imagePath);
     }
 

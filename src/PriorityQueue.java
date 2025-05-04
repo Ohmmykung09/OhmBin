@@ -1,43 +1,42 @@
-public class PriorityQueue{
+public class PriorityQueue {
     private Product front;
     private Product rear;
 
-    public PriorityQueue(){
+    public PriorityQueue() {
         this.front = null;
         this.rear = null;
     }
 
-    public void enQueue(Product P){
-        if(this.front == null){
+    public void enQueue(Product P) {
+        if (this.front == null) {
             front = rear = P;
-        }
-        else if(P.getPriority() > this.front.getPriority()){
+        } else if (P.getPriority() > this.front.getPriority()) {
             P.setNext(this.front);
             this.front = P;
-        }
-        else{
+        } else {
             Product current = this.front;
-            while(current.getNext() != null && P.getPriority() <= current.getNext().getPriority()){
+            while (current.getNext() != null
+                    && P.getPriority() <= current.getNext().getPriority()) {
                 current = current.getNext();
             }
             P.setNext(current.getNext());
             current.setNext(P);
 
-            if(P.getNext() == null){
+            if (P.getNext() == null) {
                 this.rear = P;
             }
         }
     }
 
-    public Product front(){
+    public Product front() {
         return this.front;
     }
 
-    public Product deQueue(){
-        if(this.front==null){
+    public Product deQueue() {
+        if (this.front == null) {
             System.out.println("Empty");
             return null;
-        }else{
+        } else {
             Product removed = front;
             front = front.getNext();
             if (front == null) {
@@ -49,7 +48,7 @@ public class PriorityQueue{
 
     }
 
-    public boolean isEmpty(){
+    public boolean isEmpty() {
         return this.front == null;
     }
 
