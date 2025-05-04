@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 
 public class App {
     private VendingMachine vm;
@@ -66,7 +67,8 @@ public class App {
                     productImages.put(product.getName(), icon);
                 } else {
                     // Create placeholder icon if image not found
-                    BufferedImage placeholder = new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
+                    BufferedImage placeholder =
+                            new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
                     Graphics2D g2d = placeholder.createGraphics();
                     g2d.setColor(ACCENT_COLOR);
                     g2d.fillRect(0, 0, 80, 80);
@@ -228,50 +230,54 @@ public class App {
 
                 if (result == JOptionPane.OK_OPTION) {
                     if (!cashOption.isSelected() && !PromptPayOption.isSelected()) {
-                        JOptionPane.showMessageDialog(frame, "Please select a payment method.", "Error",
-                                JOptionPane.WARNING_MESSAGE);
+                        JOptionPane.showMessageDialog(frame, "Please select a payment method.",
+                                "Error", JOptionPane.WARNING_MESSAGE);
                         return;
                     }
 
                     if (PromptPayOption.isSelected()) {
                         // Display QR code
-                        JPanel qrPanel = new JPanel(new BorderLayout(15, 15)); // Adjust layout spacing
+                        JPanel qrPanel = new JPanel(new BorderLayout(15, 15)); // Adjust layout
+                                                                               // spacing
                         qrPanel.setBackground(BG_COLOR);
-                        qrPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Adjust padding
+                        qrPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Adjust
+                                                                                            // padding
 
                         JLabel qrLabel = new JLabel();
                         qrLabel.setHorizontalAlignment(JLabel.CENTER);
                         try {
-                            File qrFolder = new File("assets/QRcode");
-                            File[] qrFiles = qrFolder.listFiles((dir, name) -> name.toLowerCase().endsWith(".png"));
-                            if (qrFiles != null && qrFiles.length > 0) {
-                                Random random = new Random();
-                                File randomQrFile = qrFiles[random.nextInt(qrFiles.length)];
-                                BufferedImage qrImage = ImageIO.read(randomQrFile);
-                                Image scaledQrImage = qrImage.getScaledInstance(200, 300, Image.SCALE_SMOOTH); // Rescale
-                                                                                                               // to
-                                                                                                               // 200x300
-                                qrLabel.setIcon(new ImageIcon(scaledQrImage));
-                            } else {
-                                JOptionPane.showMessageDialog(frame, "No QR code images found in the folder.", "Error",
-                                        JOptionPane.ERROR_MESSAGE);
-                            }
-                        } catch (IOException ex) {
-                            JOptionPane.showMessageDialog(frame, "Error loading QR code image: " + ex.getMessage(),
+                            String[] qrs = {"0965293625", "0630519730", "0930626610"};
+
+                            Random random = new Random();
+                            int randomIdx = random.nextInt(qrs.length);
+                            String qr = qrs[randomIdx];
+
+                            String qrUrl = String.format("https://promptpay.io/%s/%d", qr,
+                                    vm.getCart().getSumPrice());
+                            BufferedImage qrImage = ImageIO.read(URI.create(qrUrl).toURL());
+                            Image scaledQrImage =
+                                    qrImage.getScaledInstance(250, 250, Image.SCALE_SMOOTH);
+                            qrLabel.setIcon(new ImageIcon(scaledQrImage));
+                            qrPanel.add(qrLabel, BorderLayout.CENTER);
+                            qrLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(frame,
+                                    "Failed to load QR code image: " + ex.getMessage(),
                                     "Image Error", JOptionPane.ERROR_MESSAGE);
                             return;
                         }
 
                         JButton nextButton = createStyledButton("Next", PRIMARY_COLOR);
                         nextButton.addActionListener(ev -> {
-                            JOptionPane.showMessageDialog(frame, "Purchase successful! Thank you.", "Success",
-                                    JOptionPane.INFORMATION_MESSAGE);
+                            JOptionPane.showMessageDialog(frame, "Purchase successful! Thank you.",
+                                    "Success", JOptionPane.INFORMATION_MESSAGE);
                             addHistoryEntry(); // Add to history
                             vm.cashOut();
                             updateCartDisplay();
                             updateProductDisplay();
                             updateProductsList(productsModel);
-                            SwingUtilities.getWindowAncestor(nextButton).dispose(); // Close the payment panel
+                            SwingUtilities.getWindowAncestor(nextButton).dispose(); // Close the
+                                                                                    // payment panel
                         });
 
                         qrPanel.add(qrLabel, BorderLayout.CENTER);
@@ -286,12 +292,12 @@ public class App {
                     } else {
                         // Handle cash payment
                         int confirm = JOptionPane.showConfirmDialog(frame,
-                                "You selected Cash. Proceed to finish?",
-                                "Confirm Payment", JOptionPane.YES_NO_OPTION);
+                                "You selected Cash. Proceed to finish?", "Confirm Payment",
+                                JOptionPane.YES_NO_OPTION);
 
                         if (confirm == JOptionPane.YES_OPTION) {
-                            JOptionPane.showMessageDialog(frame, "Purchase successful! Thank you.", "Success",
-                                    JOptionPane.INFORMATION_MESSAGE);
+                            JOptionPane.showMessageDialog(frame, "Purchase successful! Thank you.",
+                                    "Success", JOptionPane.INFORMATION_MESSAGE);
                             addHistoryEntry(); // Add to history
                             vm.cashOut();
                             updateCartDisplay();
@@ -350,13 +356,15 @@ public class App {
         formPanel.setBackground(BG_COLOR);
 
         JTextField nameField = new JTextField(product != null ? product.getName() : "");
-        JTextField priceField = new JTextField(product != null ? String.valueOf(product.getPrice()) : "");
-        JTextField quantityField = new JTextField(product != null ? String.valueOf(product.getQuantity()) : "");
+        JTextField priceField =
+                new JTextField(product != null ? String.valueOf(product.getPrice()) : "");
+        JTextField quantityField =
+                new JTextField(product != null ? String.valueOf(product.getQuantity()) : "");
         JTextField imagePathField = new JTextField(
                 product != null ? ASSET_PATH + product.getName().toLowerCase() + ".png" : "");
 
         // Priority dropdown with text labels
-        String[] priorities = { "Common Item", "Hot Seller", "New Item" };
+        String[] priorities = {"Common Item", "Hot Seller", "New Item"};
         JComboBox<String> priorityDropdown = new JComboBox<>(priorities);
         if (product != null) {
             priorityDropdown.setSelectedIndex(product.getPriority());
@@ -518,7 +526,8 @@ public class App {
 
         JButton addButton = createStyledButton("Add New Product", new Color(39, 174, 96));
         JButton editButton = createStyledButton("Edit Selected Product", new Color(41, 128, 185));
-        JButton removeButton = createStyledButton("Remove Selected Product", new Color(192, 57, 43));
+        JButton removeButton =
+                createStyledButton("Remove Selected Product", new Color(192, 57, 43));
 
         addButton.addActionListener(e -> {
             showProductDialog(null, productsModel);
@@ -617,6 +626,7 @@ public class App {
         timer.setRepeats(false);
         timer.start();
     }
+
     // Helper method to create a styled JButton
     private JButton createStyledButton(String text, Color bgColor) {
         JButton button = new JButton(text);
@@ -931,9 +941,7 @@ public class App {
         StringBuilder historyEntry = new StringBuilder("Purchase on " + new Date() + ": ");
         List<Product> cartItems = vm.getCart().getAllItems();
         for (Product product : cartItems) {
-            historyEntry.append(product.getName())
-                    .append(" (x")
-                    .append(product.getQuantity())
+            historyEntry.append(product.getName()).append(" (x").append(product.getQuantity())
                     .append("), ");
         }
         historyEntry.append("Total: ").append(vm.getCart().getSumPrice()).append(" THB");
