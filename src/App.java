@@ -29,6 +29,8 @@ public class App {
     private final Font REGULAR_FONT = new Font("Arial", Font.PLAIN, 14);
     private final String PASSWORD = "admin123";
     private final String ASSET_PATH = "OhmBin/asset/";
+    private final String BUTTON_SOUND = "assets/Music/ButtonSound.wav";
+    private final String LEVER_SOUND = "assets/Music/LeverSound.wav";
     private Map<String, ImageIcon> productImages = new HashMap<>();
 
     public App(VendingMachine vm) {
@@ -246,7 +248,9 @@ public class App {
                                 Random random = new Random();
                                 File randomQrFile = qrFiles[random.nextInt(qrFiles.length)];
                                 BufferedImage qrImage = ImageIO.read(randomQrFile);
-                                Image scaledQrImage = qrImage.getScaledInstance(200, 300, Image.SCALE_SMOOTH); // Rescale to 200x300
+                                Image scaledQrImage = qrImage.getScaledInstance(200, 300, Image.SCALE_SMOOTH); // Rescale
+                                                                                                               // to
+                                                                                                               // 200x300
                                 qrLabel.setIcon(new ImageIcon(scaledQrImage));
                             } else {
                                 JOptionPane.showMessageDialog(frame, "No QR code images found in the folder.", "Error",
@@ -774,6 +778,9 @@ public class App {
                 JOptionPane.showMessageDialog(frame, "This product is out of stock!", "Error",
                         JOptionPane.ERROR_MESSAGE);
             } else {
+                // Play button sound
+                Bgm.playSoundEffect(BUTTON_SOUND);
+
                 // Animate button on click
                 iconPanel.setBackground(ACCENT_COLOR.darker());
                 javax.swing.Timer timer = new javax.swing.Timer(150, event -> {
@@ -936,6 +943,7 @@ public class App {
         if (result == JOptionPane.OK_OPTION) {
             String password = new String(passwordField.getPassword());
             if (PASSWORD.equals(password)) {
+                Bgm.playSoundEffect(LEVER_SOUND); // Play lever sound
                 cardLayout.show(cardPanel, "admin");
             } else {
                 JOptionPane.showMessageDialog(frame, "Incorrect password!", "Access Denied",

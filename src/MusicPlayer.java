@@ -21,4 +21,20 @@ public class MusicPlayer {
             e.printStackTrace();
         }
     }
+
+    public void playSoundEffect(String filepath) {
+        try {
+            File soundPath = new File(filepath);
+            if (soundPath.exists()) {
+                AudioInputStream audioInput = AudioSystem.getAudioInputStream(soundPath);
+                Clip soundClip = AudioSystem.getClip();
+                soundClip.open(audioInput);
+                soundClip.start();
+            } else {
+                System.out.println("File not found: " + filepath);
+            }
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
 }
