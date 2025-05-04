@@ -617,31 +617,6 @@ public class App {
         timer.setRepeats(false);
         timer.start();
     }
-
-    private void animateCheckout(JButton button) {
-        // Flash checkout button
-        animateButton(button);
-
-        // Shake cart items
-        javax.swing.Timer shakeTimer = new javax.swing.Timer(50, new ActionListener() {
-            private int count = 0;
-            private final int[] offsets = { 0, 3, 0, -3, 0 };
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (count < offsets.length) {
-                    cartItemsPanel.setBorder(
-                            BorderFactory.createEmptyBorder(5, 5 + offsets[count], 5, 5));
-                    count++;
-                } else {
-                    ((javax.swing.Timer) e.getSource()).stop();
-                    cartItemsPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-                }
-            }
-        });
-        shakeTimer.start();
-    }
-
     // Helper method to create a styled JButton
     private JButton createStyledButton(String text, Color bgColor) {
         JButton button = new JButton(text);
@@ -728,7 +703,7 @@ public class App {
         stockLabel.setForeground(new Color(149, 165, 166));
 
         // Product priority label
-        JLabel priorityLabel = new JLabel(getPrioritylevel(product.getPriority()));
+        JLabel priorityLabel = new JLabel(getPriorityLevel(product.getPriority()));
         priorityLabel.setFont(new Font("Arial", Font.BOLD, 12));
         priorityLabel.setForeground(getBgColor(product.getPriority()));
 
@@ -797,7 +772,7 @@ public class App {
         return button;
     }
 
-    public String getPrioritylevel(int priority) {
+    public String getPriorityLevel(int priority) {
         switch (priority) {
             case 0:
                 return "Common Item";
@@ -950,17 +925,6 @@ public class App {
                         JOptionPane.ERROR_MESSAGE);
             }
         }
-    }
-
-    // Helper method for input prompts
-    private String promptForInput(String title, String message) {
-        return JOptionPane.showInputDialog(frame, message, title, JOptionPane.PLAIN_MESSAGE);
-    }
-
-    // Helper method for input prompts with default value
-    private String promptForInput(String title, String message, String defaultValue) {
-        return (String) JOptionPane.showInputDialog(frame, message, title,
-                JOptionPane.PLAIN_MESSAGE, null, null, defaultValue);
     }
 
     private void addHistoryEntry() {
