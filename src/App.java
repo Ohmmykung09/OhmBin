@@ -18,6 +18,7 @@ public class App {
     private JPanel cartItemsPanel; // Panel to hold cart items with controls
     private DefaultListModel<String> cartModel;
     private DefaultListModel<String> productsModel;
+    private DefaultListModel<String> historyModel = new DefaultListModel<>();
     private JLabel totalPriceLabel;
     private JPanel productGridPanel;
     private final Color PRIMARY_COLOR = new Color(41, 128, 185);
@@ -124,6 +125,14 @@ public class App {
         titleLabel.setForeground(Color.WHITE);
 
         JButton adminButton = createStyledButton("", ACCENT_COLOR);
+        JButton historyButton = createStyledButton("", ACCENT_COLOR); // Updated to use icon
+        try {
+            BufferedImage historyIcon = ImageIO.read(new File("assets/IconPic/Historyicon.png"));
+            Image scaledHistoryIcon = historyIcon.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+            historyButton.setIcon(new ImageIcon(scaledHistoryIcon));
+        } catch (IOException e) {
+            System.err.println("Error loading history icon: " + e.getMessage());
+        }
         try {
             BufferedImage adminIcon = ImageIO.read(new File("assets/IconPic/AdminIcon.png"));
             Image scaledIcon = adminIcon.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
@@ -133,8 +142,15 @@ public class App {
         }
         adminButton.addActionListener(e -> promptAdminPassword());
 
+        historyButton.addActionListener(e -> showHistoryDialog()); // Show history dialog
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setBackground(PRIMARY_COLOR);
+        buttonPanel.add(historyButton);
+        buttonPanel.add(adminButton);
+
         headerPanel.add(titleLabel, BorderLayout.WEST);
-        headerPanel.add(adminButton, BorderLayout.EAST);
+        headerPanel.add(buttonPanel, BorderLayout.EAST);
 
         // Products Panel
         JPanel productsContainer = new JPanel(new BorderLayout());
@@ -196,30 +212,30 @@ public class App {
                 label.setForeground(TEXT_COLOR);
 
                 JRadioButton cashOption = new JRadioButton("Cash");
-                JRadioButton qrCodeOption = new JRadioButton("QR Code");
+                JRadioButton PromptPayOption = new JRadioButton("PromptPay");
                 ButtonGroup paymentGroup = new ButtonGroup();
                 paymentGroup.add(cashOption);
-                paymentGroup.add(qrCodeOption);
+                paymentGroup.add(PromptPayOption);
 
                 paymentPanel.add(label);
                 paymentPanel.add(cashOption);
-                paymentPanel.add(qrCodeOption);
+                paymentPanel.add(PromptPayOption);
 
                 int result = JOptionPane.showConfirmDialog(frame, paymentPanel, "Payment Method",
                         JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
                 if (result == JOptionPane.OK_OPTION) {
-                    if (!cashOption.isSelected() && !qrCodeOption.isSelected()) {
+                    if (!cashOption.isSelected() && !PromptPayOption.isSelected()) {
                         JOptionPane.showMessageDialog(frame, "Please select a payment method.", "Error",
                                 JOptionPane.WARNING_MESSAGE);
                         return;
                     }
 
-                    if (qrCodeOption.isSelected()) {
+                    if (PromptPayOption.isSelected()) {
                         // Display QR code
-                        JPanel qrPanel = new JPanel(new BorderLayout(10, 10));
+                        JPanel qrPanel = new JPanel(new BorderLayout(15, 15)); // Adjust layout spacing
                         qrPanel.setBackground(BG_COLOR);
-                        qrPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+                        qrPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Adjust padding
 
                         JLabel qrLabel = new JLabel();
                         qrLabel.setHorizontalAlignment(JLabel.CENTER);
@@ -230,7 +246,7 @@ public class App {
                                 Random random = new Random();
                                 File randomQrFile = qrFiles[random.nextInt(qrFiles.length)];
                                 BufferedImage qrImage = ImageIO.read(randomQrFile);
-                                Image scaledQrImage = qrImage.getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+                                Image scaledQrImage = qrImage.getScaledInstance(200, 300, Image.SCALE_SMOOTH); // Rescale to 200x300
                                 qrLabel.setIcon(new ImageIcon(scaledQrImage));
                             } else {
                                 JOptionPane.showMessageDialog(frame, "No QR code images found in the folder.", "Error",
@@ -246,6 +262,7 @@ public class App {
                         nextButton.addActionListener(ev -> {
                             JOptionPane.showMessageDialog(frame, "Purchase successful! Thank you.", "Success",
                                     JOptionPane.INFORMATION_MESSAGE);
+                            addHistoryEntry(); // Add to history
                             vm.cashOut();
                             updateCartDisplay();
                             updateProductDisplay();
@@ -258,7 +275,7 @@ public class App {
 
                         JDialog qrDialog = new JDialog(frame, "QR Code Payment", true);
                         qrDialog.getContentPane().add(qrPanel);
-                        qrDialog.setSize(300, 350);
+                        qrDialog.setSize(350, 400); // Adjust dialog size
                         qrDialog.setLocationRelativeTo(frame);
                         qrDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
                         qrDialog.setVisible(true);
@@ -271,6 +288,7 @@ public class App {
                         if (confirm == JOptionPane.YES_OPTION) {
                             JOptionPane.showMessageDialog(frame, "Purchase successful! Thank you.", "Success",
                                     JOptionPane.INFORMATION_MESSAGE);
+                            addHistoryEntry(); // Add to history
                             vm.cashOut();
                             updateCartDisplay();
                             updateProductDisplay();
@@ -547,6 +565,22 @@ public class App {
         panel.add(adminContent, BorderLayout.CENTER);
 
         return panel;
+    }
+
+    private void showHistoryDialog() {
+        JList<String> historyList = new JList<>(historyModel);
+        historyList.setFont(REGULAR_FONT);
+        historyList.setBackground(Color.WHITE);
+
+        JScrollPane scrollPane = new JScrollPane(historyList);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JDialog historyDialog = new JDialog(frame, "Purchase History", true);
+        historyDialog.getContentPane().add(scrollPane);
+        historyDialog.setSize(400, 300);
+        historyDialog.setLocationRelativeTo(frame);
+        historyDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        historyDialog.setVisible(true);
     }
 
     // Animation methods
@@ -919,6 +953,19 @@ public class App {
     private String promptForInput(String title, String message, String defaultValue) {
         return (String) JOptionPane.showInputDialog(frame, message, title,
                 JOptionPane.PLAIN_MESSAGE, null, null, defaultValue);
+    }
+
+    private void addHistoryEntry() {
+        StringBuilder historyEntry = new StringBuilder("Purchase on " + new Date() + ": ");
+        List<Product> cartItems = vm.getCart().getAllItems();
+        for (Product product : cartItems) {
+            historyEntry.append(product.getName())
+                    .append(" (x")
+                    .append(product.getQuantity())
+                    .append("), ");
+        }
+        historyEntry.append("Total: ").append(vm.getCart().getSumPrice()).append(" THB");
+        historyModel.addElement(historyEntry.toString());
     }
 
     // Show the GUI

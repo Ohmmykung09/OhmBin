@@ -5,12 +5,10 @@ import javax.swing.JOptionPane;
 public class VendingMachine {
     private Screen Scr;
     private Cart cart;
-    private History history;
 
     public VendingMachine() {
         this.Scr = new Screen();
         this.cart = new Cart();
-        this.history = new History();
     }
 
     public void AddToCart(Product P) {
@@ -117,5 +115,4 @@ public class VendingMachine {
     public void removeProduct(String name) {
         Scr.removeProduct(name);
     }
-
 }
