@@ -187,13 +187,89 @@ public class App {
                 JOptionPane.showMessageDialog(frame, "Your cart is empty!", "Checkout",
                         JOptionPane.WARNING_MESSAGE);
             } else {
-                animateCheckout(checkoutBtn);
-                vm.cashOut();
-                updateCartDisplay();
-                updateProductDisplay();
-                updateProductsList(productsModel);
-                JOptionPane.showMessageDialog(frame, "Purchase successful! Thank you.", "Success",
-                        JOptionPane.INFORMATION_MESSAGE);
+                // Create a popup for payment method selection
+                JPanel paymentPanel = new JPanel(new GridLayout(3, 1, 10, 10));
+                paymentPanel.setBackground(BG_COLOR);
+                paymentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+                JLabel label = new JLabel("Select Payment Method:");
+                label.setFont(REGULAR_FONT);
+                label.setForeground(TEXT_COLOR);
+
+                JRadioButton cashOption = new JRadioButton("Cash");
+                JRadioButton qrCodeOption = new JRadioButton("QR Code");
+                ButtonGroup paymentGroup = new ButtonGroup();
+                paymentGroup.add(cashOption);
+                paymentGroup.add(qrCodeOption);
+
+                paymentPanel.add(label);
+                paymentPanel.add(cashOption);
+                paymentPanel.add(qrCodeOption);
+
+                int result = JOptionPane.showConfirmDialog(frame, paymentPanel, "Payment Method",
+                        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+                if (result == JOptionPane.OK_OPTION) {
+                    if (!cashOption.isSelected() && !qrCodeOption.isSelected()) {
+                        JOptionPane.showMessageDialog(frame, "Please select a payment method.", "Error",
+                                JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+
+                    if (qrCodeOption.isSelected()) {
+                        // Display QR code
+                        JPanel qrPanel = new JPanel(new BorderLayout(10, 10));
+                        qrPanel.setBackground(BG_COLOR);
+                        qrPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+                        JLabel qrLabel = new JLabel();
+                        qrLabel.setHorizontalAlignment(JLabel.CENTER);
+                        try {
+                            BufferedImage qrImage = ImageIO.read(new File("assets/QRcode/ThanabunQR.png"));
+                            Image scaledQrImage = qrImage.getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+                            qrLabel.setIcon(new ImageIcon(scaledQrImage));
+                        } catch (IOException ex) {
+                            JOptionPane.showMessageDialog(frame, "Error loading QR code image: " + ex.getMessage(),
+                                    "Image Error", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+
+                        JButton nextButton = createStyledButton("Next", PRIMARY_COLOR);
+                        nextButton.addActionListener(ev -> {
+                            JOptionPane.showMessageDialog(frame, "Purchase successful! Thank you.", "Success",
+                                    JOptionPane.INFORMATION_MESSAGE);
+                            vm.cashOut();
+                            updateCartDisplay();
+                            updateProductDisplay();
+                            updateProductsList(productsModel);
+                            SwingUtilities.getWindowAncestor(nextButton).dispose(); // Close the payment panel
+                        });
+
+                        qrPanel.add(qrLabel, BorderLayout.CENTER);
+                        qrPanel.add(nextButton, BorderLayout.SOUTH);
+
+                        JDialog qrDialog = new JDialog(frame, "QR Code Payment", true);
+                        qrDialog.getContentPane().add(qrPanel);
+                        qrDialog.setSize(300, 350);
+                        qrDialog.setLocationRelativeTo(frame);
+                        qrDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                        qrDialog.setVisible(true);
+                    } else {
+                        // Handle cash payment
+                        int confirm = JOptionPane.showConfirmDialog(frame,
+                                "You selected Cash. Proceed to finish?",
+                                "Confirm Payment", JOptionPane.YES_NO_OPTION);
+
+                        if (confirm == JOptionPane.YES_OPTION) {
+                            JOptionPane.showMessageDialog(frame, "Purchase successful! Thank you.", "Success",
+                                    JOptionPane.INFORMATION_MESSAGE);
+                            vm.cashOut();
+                            updateCartDisplay();
+                            updateProductDisplay();
+                            updateProductsList(productsModel);
+                        }
+                    }
+                }
             }
         });
 
@@ -863,7 +939,6 @@ public class App {
             vendingMachine.addProduct(35, "Fanta", 8, 0, "assets/productPic/Fanta.png");
             vendingMachine.addProduct(40, "Water", 15, 1, "assets/productPic/Water.png");
             vendingMachine.addProduct(45, "Coffee", 5, 2, "assets/productPic/Coffee.png");
-
             App gui = new App(vendingMachine);
             gui.createAndShowGUI();
         });
