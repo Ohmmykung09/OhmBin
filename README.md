@@ -30,8 +30,8 @@ OhmBin is a modern vending machine application with a graphical user interface (
 1. **Clone the Repository**:
 
    ```bash
-   git clone <repository-url>
-   cd Final_ProStruct/OhmBin
+   git clone https://github.com/Ohmmykung09/OhmBin.git
+   cd OhmBin
    ```
 
 2. **Compile the Code**:
