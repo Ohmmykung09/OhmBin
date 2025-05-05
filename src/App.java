@@ -144,9 +144,9 @@ public class App {
         } catch (IOException e) {
             System.err.println("Error loading admin icon: " + e.getMessage());
         }
-        adminButton.addActionListener(e -> promptAdminPassword());
+        adminButton.addActionListener(_ -> promptAdminPassword());
 
-        historyButton.addActionListener(e -> showHistoryDialog()); // Show history dialog
+        historyButton.addActionListener(_ -> showHistoryDialog()); // Show history dialog
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBackground(PRIMARY_COLOR);
@@ -201,7 +201,7 @@ public class App {
         } catch (IOException e) {
             System.err.println("Error loading cart icon: " + e.getMessage());
         }
-        checkoutBtn.addActionListener(e -> {
+        checkoutBtn.addActionListener(_ -> {
             if (vm.getCart().getAllItems().isEmpty()) {
                 JOptionPane.showMessageDialog(frame, "Your cart is empty!", "Checkout",
                         JOptionPane.WARNING_MESSAGE);
@@ -268,7 +268,7 @@ public class App {
                         }
 
                         JButton nextButton = createStyledButton("Next", PRIMARY_COLOR);
-                        nextButton.addActionListener(ev -> {
+                        nextButton.addActionListener(_ -> {
                             JOptionPane.showMessageDialog(frame, "Purchase successful! Thank you.",
                                     "Success", JOptionPane.INFORMATION_MESSAGE);
                             addHistoryEntry(); // Add to history
@@ -371,7 +371,7 @@ public class App {
         }
 
         JButton browseButton = createStyledButton("Browse", ACCENT_COLOR);
-        browseButton.addActionListener(e -> {
+        browseButton.addActionListener(_ -> {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
             int result = fileChooser.showOpenDialog(frame);
@@ -490,7 +490,7 @@ public class App {
         } catch (IOException e) {
             System.err.println("Error loading cart icon: " + e.getMessage());
         }
-        backButton.addActionListener(e -> cardLayout.show(cardPanel, "customer"));
+        backButton.addActionListener(_ -> cardLayout.show(cardPanel, "customer"));
 
         headerPanel.add(titleLabel, BorderLayout.WEST);
         headerPanel.add(backButton, BorderLayout.EAST);
@@ -529,11 +529,11 @@ public class App {
         JButton removeButton =
                 createStyledButton("Remove Selected Product", new Color(192, 57, 43));
 
-        addButton.addActionListener(e -> {
+        addButton.addActionListener(_ -> {
             showProductDialog(null, productsModel);
         });
 
-        editButton.addActionListener(e -> {
+        editButton.addActionListener(_ -> {
             int selectedIndex = productsList.getSelectedIndex();
             if (selectedIndex >= 0) {
                 Product p = vm.getAllProducts().get(selectedIndex);
@@ -544,7 +544,7 @@ public class App {
             }
         });
 
-        removeButton.addActionListener(e -> {
+        removeButton.addActionListener(_ -> {
             int selectedIndex = productsList.getSelectedIndex();
             if (selectedIndex >= 0) {
                 Product p = vm.getAllProducts().get(selectedIndex);
@@ -601,7 +601,7 @@ public class App {
         Color originalColor = button.getBackground();
         button.setBackground(button.getBackground().brighter());
 
-        javax.swing.Timer timer = new javax.swing.Timer(150, e -> {
+        javax.swing.Timer timer = new javax.swing.Timer(150, _ -> {
             button.setBackground(originalColor);
         });
         timer.setRepeats(false);
@@ -619,7 +619,7 @@ public class App {
                 .setFont(new Font(originalFont.getName(), Font.BOLD, originalFont.getSize() + 2));
         totalPriceLabel.setForeground(new Color(231, 76, 60));
 
-        javax.swing.Timer timer = new javax.swing.Timer(300, e -> {
+        javax.swing.Timer timer = new javax.swing.Timer(300, _ -> {
             totalPriceLabel.setFont(originalFont);
             totalPriceLabel.setForeground(originalColor);
         });
@@ -758,7 +758,7 @@ public class App {
             });
         }
 
-        button.addActionListener(e -> {
+        button.addActionListener(_ -> {
             if (product.getQuantity() <= 0) {
                 JOptionPane.showMessageDialog(frame, "This product is out of stock!", "Error",
                         JOptionPane.ERROR_MESSAGE);
@@ -768,7 +768,7 @@ public class App {
 
                 // Animate button on click
                 iconPanel.setBackground(ACCENT_COLOR.darker());
-                javax.swing.Timer timer = new javax.swing.Timer(150, event -> {
+                javax.swing.Timer timer = new javax.swing.Timer(150, _ -> {
                     iconPanel.setBackground(ACCENT_COLOR);
                 });
                 timer.setRepeats(false);
@@ -869,7 +869,7 @@ public class App {
             deleteBtn.setAlignmentY(Component.CENTER_ALIGNMENT);
 
             int idx = i; // for lambda
-            plusBtn.addActionListener(e -> {
+            plusBtn.addActionListener(_ -> {
                 Product p = vm.getCart().getAllItems().get(idx);
                 Product originalProduct = vm.getAllProducts().stream()
                         .filter(prod -> prod.getId() == p.getId()).findFirst().orElse(null);
@@ -883,7 +883,7 @@ public class App {
                             JOptionPane.ERROR_MESSAGE);
                 }
             });
-            minusBtn.addActionListener(e -> {
+            minusBtn.addActionListener(_ -> {
                 Product p = vm.getCart().getAllItems().get(idx);
                 if (p.getQuantity() > 1) {
                     p.addQuantity(-1);
@@ -894,7 +894,7 @@ public class App {
                 updateCartDisplay();
                 animateCartUpdate(minusBtn);
             });
-            deleteBtn.addActionListener(e -> {
+            deleteBtn.addActionListener(_ -> {
                 Product p = vm.getCart().getAllItems().get(idx);
                 vm.getCart().removeFromCart(p);
                 updateCartDisplay();
