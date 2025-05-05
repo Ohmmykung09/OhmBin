@@ -1,5 +1,10 @@
+package ui;
 import javax.swing.*;
 import javax.swing.border.*;
+
+import dataStructure.Product;
+import model.VendingMachine;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;

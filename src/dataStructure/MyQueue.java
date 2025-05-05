@@ -1,3 +1,4 @@
+package dataStructure;
 public class MyQueue {
     private Product front;
     private Product rear;

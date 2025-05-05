@@ -1,3 +1,4 @@
+package dataStructure;
 public class PriorityQueue {
     private Product front;
     private Product rear;

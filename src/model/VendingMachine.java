@@ -1,6 +1,9 @@
+package model;
 import java.util.List;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
+
+import dataStructure.Product;
 
 public class VendingMachine {
     private Screen Scr;

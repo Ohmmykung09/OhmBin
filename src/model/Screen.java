@@ -1,3 +1,9 @@
+package model;
+
+import dataStructure.MyQueue;
+import dataStructure.PriorityQueue;
+import dataStructure.Product;
+
 public class Screen {
     private PriorityQueue PQ;
     private MyQueue Q;

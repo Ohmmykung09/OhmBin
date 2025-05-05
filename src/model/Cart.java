@@ -1,5 +1,9 @@
+package model;
 import java.util.ArrayList;
 import java.util.List;
+
+import dataStructure.MyQueue;
+import dataStructure.Product;
 
 public class Cart {
     private MyQueue Q;
