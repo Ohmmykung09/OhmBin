@@ -364,6 +364,13 @@ public class App {
                 int priority = priorityDropdown.getSelectedIndex(); // Map selected index to integer
                                                                     // priority
 
+                // Validate price and quantity
+                if (price < 0 || quantity < 0) {
+                    JOptionPane.showMessageDialog(frame, "Price and quantity must be greater than or equal to 0.",
+                            "Validation Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
                 // Check for image path validity
                 String imagePath = imagePathField.getText().trim();
                 boolean imageExists = new File(imagePath).exists();
