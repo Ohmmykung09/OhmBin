@@ -985,9 +985,9 @@ public class App {
             // Add products with priority (lower number = higher priority)
             vendingMachine.addProduct(4, "MuekGroob", 6, 1, "assets/productPic/Meukgrub.png");
             vendingMachine.addProduct(10, "Provita", 4, 0, "assets/productPic/Provita.png");
-            vendingMachine.addProduct(2, "Lactasoy", 10, 1, "assets/productPic/Lactasoy.png");
+            vendingMachine.addProduct(2, "Lactasoy", 4, 1, "assets/productPic/Lactasoy.png");
             //vendingMachine.addProduct(35, "Fanta", 8, 0, "assets/productPic/Fanta.png");
-            vendingMachine.addProduct(15, "Sunbite", 15, 0, "assets/productPic/Sunbite.png");
+            vendingMachine.addProduct(15, "Sunbite", 1, 0, "assets/productPic/Sunbite.png");
             //vendingMachine.addProduct(45, "Coffee", 5, 2, "assets/productPic/Coffee.png");
             App gui = new App(vendingMachine);
             gui.createAndShowGUI();
