@@ -13,7 +13,19 @@ if errorlevel 1 (
     exit /b
 )
 
-echo Running...
-java -cp bin ui.App
+REM Copy assets folder to bin
+echo Copying assets...
+xcopy /E /I assets bin\assets
+
+echo Packaging into JAR...
+jar cfe OhmBin.jar ui.App -C bin .
+if errorlevel 1 (
+    echo JAR packaging failed. Exiting...
+    pause
+    exit /b
+)
+
+echo Running JAR...
+java -jar OhmBin.jar
 
 pause

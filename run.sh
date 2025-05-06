@@ -17,6 +17,18 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+# Copy assets folder to bin
+echo "Copying assets..."
+cp -r assets bin/
+
+# Package into a .jar file
+echo "Packaging into JAR..."
+jar cfe OhmBin.jar ui.App -C bin .
+if [ $? -ne 0 ]; then
+  echo "JAR packaging failed. Exiting..."
+  exit 1
+fi
+
 # Run the application
-echo "Running..."
-java -cp bin ui.App
+echo "Running JAR..."
+java -jar OhmBin.jar
