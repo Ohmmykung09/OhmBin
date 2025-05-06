@@ -983,12 +983,12 @@ public class App {
         SwingUtilities.invokeLater(() -> {
             VendingMachine vendingMachine = new VendingMachine();
             // Add products with priority (lower number = higher priority)
-            vendingMachine.addProduct(30, "Coke", 10, 1, "assets/productPic/Coke.png");
-            vendingMachine.addProduct(25, "Pepsi", 10, 2, "assets/productPic/Pepsi.png");
-            vendingMachine.addProduct(20, "Sprite", 10, 0, "assets/productPic/Sprite.png");
-            vendingMachine.addProduct(35, "Fanta", 8, 0, "assets/productPic/Fanta.png");
-            vendingMachine.addProduct(40, "Water", 15, 1, "assets/productPic/Water.png");
-            vendingMachine.addProduct(45, "Coffee", 5, 2, "assets/productPic/Coffee.png");
+            vendingMachine.addProduct(30, "MuekGroob", 6, 1, "assets/productPic/Meukgrub.png");
+            vendingMachine.addProduct(25, "Provita", 4, 0, "assets/productPic/Provita.png");
+            vendingMachine.addProduct(20, "Lactasoy", 10, 0, "assets/productPic/Lactasoy.png");
+            //vendingMachine.addProduct(35, "Fanta", 8, 0, "assets/productPic/Fanta.png");
+            vendingMachine.addProduct(40, "Sunbite Sour Cream", 15, 1, "assets/productPic/Sunbite.png");
+            //vendingMachine.addProduct(45, "Coffee", 5, 2, "assets/productPic/Coffee.png");
             App gui = new App(vendingMachine);
             gui.createAndShowGUI();
         });
