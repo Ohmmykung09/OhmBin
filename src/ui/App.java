@@ -21,7 +21,7 @@ public class App {
     private JFrame frame;
     private JPanel cardPanel;
     private CardLayout cardLayout;
-    private JPanel cartItemsPanel; // Panel to hold cart items with controls
+    private JPanel cartItemsPanel; 
     private DefaultListModel<String> cartModel;
     private DefaultListModel<String> productsModel;
     private DefaultListModel<String> historyModel = new DefaultListModel<>();
@@ -39,6 +39,7 @@ public class App {
     private final String LEVER_SOUND = "assets/Music/LeverSound.wav";
     private Map<String, ImageIcon> productImages = new HashMap<>();
 
+    //Constructoro สร้าง Vending Machine และ Setup Frame ของ App และสร้าง music Player
     public App(VendingMachine vm) {
         this.vm = vm;
         this.frame = new JFrame("Modern Vending Machine");
@@ -50,28 +51,26 @@ public class App {
         frame.setVisible(true);
     }
 
-    private void setupMusic() {
+    private void setupMusic() { //เปิดเพลง Bgm
         Bgm = new MusicPlayer();
         Bgm.playMusic("assets/Music/FinalBgm.wav");
     }
 
-    private void loadProductImages() {
-        List<Product> products = vm.getAllProducts();
-        for (Product product : products) {
+    private void loadProductImages() { //Load รูปสินค้า
+        List<Product> products = vm.getAllProducts(); //สร้าง List ของ product จากรายการสินค้า
+        for (Product product : products) { //Loop Product ทุกตัว
             try {
-                String imagePath = product.getImagePath();
+                String imagePath = product.getImagePath(); //อ่าน image path
                 System.out.println(
                         "Attempting to load image from: " + new File(imagePath).getAbsolutePath());
                 File imageFile = new File(imagePath);
 
-                if (imageFile.exists()) {
+                if (imageFile.exists()) { //กรณีเจอให้สร้างรูปขนาดเท่ากับ 80*80
                     BufferedImage img = ImageIO.read(imageFile);
-                    // Scale image to fit the panel
                     Image scaledImg = img.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
                     ImageIcon icon = new ImageIcon(scaledImg);
                     productImages.put(product.getName(), icon);
-                } else {
-                    // Create placeholder icon if image not found
+                } else { //กรณีไม่เจอรูปให้สร้างเป็น Placeholder เป็นอักษรย่อ
                     BufferedImage placeholder =
                             new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
                     Graphics2D g2d = placeholder.createGraphics();
@@ -82,10 +81,9 @@ public class App {
                     g2d.dispose();
                     productImages.put(product.getName(), new ImageIcon(placeholder));
                 }
-            } catch (IOException e) {
+            } catch (IOException e) { //กรณีอื่น ๆ
                 System.err.println(
                         "Error loading image for " + product.getName() + ": " + e.getMessage());
-                // Create default icon
                 BufferedImage placeholder = new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
                 Graphics2D g2d = placeholder.createGraphics();
                 g2d.setColor(ACCENT_COLOR);
@@ -96,35 +94,31 @@ public class App {
         }
     }
 
-    private void setupFrame() {
+    private void setupFrame() { //สร้าง frame ของ App 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1000, 600);
         frame.getContentPane().setBackground(BG_COLOR);
 
-        // Create card layout for switching between customer and admin views
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
         cardPanel.setBackground(BG_COLOR);
+        //สร้าง cardPanel รวมทุกอย่าง
+        JPanel customerPanel = createCustomerPanel(); //มี Customer Panel 
 
-        // Create customer panel
-        JPanel customerPanel = createCustomerPanel();
+        JPanel adminPanel = createAdminPanel(); //มี Admin Panel
 
-        // Create admin panel
-        JPanel adminPanel = createAdminPanel();
-
-        // Add panels to card layout
         cardPanel.add(customerPanel, "customer");
         cardPanel.add(adminPanel, "admin");
-
+        //Add Cardpanel ลงใน frame
         frame.add(cardPanel);
     }
 
-    private JPanel createCustomerPanel() {
+    private JPanel createCustomerPanel() { //Customer Panel
         JPanel panel = new JPanel(new BorderLayout(15, 15));
         panel.setBackground(BG_COLOR);
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Header Panel
+        //Header
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(PRIMARY_COLOR);
         headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -132,26 +126,26 @@ public class App {
         JLabel titleLabel = new JLabel("Ohmboo the Vending Machine");
         titleLabel.setFont(TITLE_FONT);
         titleLabel.setForeground(Color.WHITE);
-
+        //สร้างปุ่ม admin และ history
         JButton adminButton = createStyledButton("", ACCENT_COLOR);
         JButton historyButton = createStyledButton("", ACCENT_COLOR); // Updated to use icon
-        try {
+        try { //Load รูปปุ่ม history
             BufferedImage historyIcon = ImageIO.read(new File("assets/IconPic/Historyicon.png"));
             Image scaledHistoryIcon = historyIcon.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
             historyButton.setIcon(new ImageIcon(scaledHistoryIcon));
         } catch (IOException e) {
             System.err.println("Error loading history icon: " + e.getMessage());
         }
-        try {
+        try {  //Load รูปปุ่ม admin
             BufferedImage adminIcon = ImageIO.read(new File("assets/IconPic/AdminIcon.png"));
             Image scaledIcon = adminIcon.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
             adminButton.setIcon(new ImageIcon(scaledIcon));
         } catch (IOException e) {
             System.err.println("Error loading admin icon: " + e.getMessage());
         }
-        adminButton.addActionListener(e -> promptAdminPassword());
+        adminButton.addActionListener(e -> promptAdminPassword()); //Validate admin หลังจากกดปุ่ม history
 
-        historyButton.addActionListener(e -> showHistoryDialog()); // Show history dialog
+        historyButton.addActionListener(e -> showHistoryDialog()); //แสดงประวัติการขาย หลังจากกดปุ่ม history
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBackground(PRIMARY_COLOR);
@@ -161,7 +155,7 @@ public class App {
         headerPanel.add(titleLabel, BorderLayout.WEST);
         headerPanel.add(buttonPanel, BorderLayout.EAST);
 
-        // Products Panel
+        //รายการสินค้า
         JPanel productsContainer = new JPanel(new BorderLayout());
         productsContainer.setBackground(BG_COLOR);
         productsContainer.setBorder(createRoundedBorder("Products", 10));
@@ -170,14 +164,14 @@ public class App {
         productGridPanel.setBackground(BG_COLOR);
         productGridPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        updateProductDisplay();
+        updateProductDisplay(); //แสดงรายการสินค้า
 
         JScrollPane productScroll = new JScrollPane(productGridPanel);
         productScroll.setBorder(null);
         productScroll.getVerticalScrollBar().setUnitIncrement(16);
         productsContainer.add(productScroll, BorderLayout.CENTER);
 
-        // Cart Panel
+        //ตะกร้า
         JPanel cartContainer = new JPanel(new BorderLayout());
         cartContainer.setBackground(BG_COLOR);
         cartContainer.setBorder(createRoundedBorder("Your Cart", 10));
@@ -199,23 +193,23 @@ public class App {
 
         JButton checkoutBtn = createStyledButton("", PRIMARY_COLOR);
         checkoutBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        try {
+        try { //Load รูปปุ่ม Cashout
             BufferedImage cartIcon = ImageIO.read(new File("assets/IconPic/CartIcon.png"));
             Image scaledIcon = cartIcon.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
             checkoutBtn.setIcon(new ImageIcon(scaledIcon));
         } catch (IOException e) {
             System.err.println("Error loading cart icon: " + e.getMessage());
         }
-        checkoutBtn.addActionListener(e -> {
-            if (vm.getCart().getAllItems().isEmpty()) {
+        checkoutBtn.addActionListener(e -> { //กดปุ่ม Checkout
+            if (vm.getCart().getAllItems().isEmpty()) { //กรณีตะกร้าว่าง
                 JOptionPane.showMessageDialog(frame, "Your cart is empty!", "Checkout",
-                        JOptionPane.WARNING_MESSAGE);
-            } else {
+                        JOptionPane.WARNING_MESSAGE); //pop up แจ้งเตือน
+            } else { //กรณีตะกร้าไม่ว่าง
                 JPanel paymentPanel = new JPanel(new GridLayout(3, 1, 10, 10));
                 paymentPanel.setBackground(BG_COLOR);
                 paymentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-                JLabel label = new JLabel("Select Payment Method:");
+                JLabel label = new JLabel("Select Payment Method:"); //pop up เลือกวิธีชำระเงิน
                 label.setFont(REGULAR_FONT);
                 label.setForeground(TEXT_COLOR);
 
@@ -239,16 +233,16 @@ public class App {
                         return;
                     }
 
-                    if (PromptPayOption.isSelected()) {
+                    if (PromptPayOption.isSelected()) { //กรณีเลือก prompt pay
                         String[] qrs = {"0965293625", "0630519730", "0930626610"};
                         Random random = new Random();
                         int randomIdx = random.nextInt(qrs.length);
                         String qr = qrs[randomIdx];
                         String qrUrl = String.format("https://promptpay.io/%s/%d", qr,
                                 vm.getCart().getSumPrice());
-                        handleQRPayment(qrUrl);
-                    } else {
-                        handleCashPayment();
+                        handleQRPayment(qrUrl); //แสดง Qrcode
+                    } else { //กรณีชำระเงินสด
+                        handleCashPayment(); //แสดงหน้าจำลองชำระเงินสด
                     }
                 }
             }
@@ -264,7 +258,7 @@ public class App {
 
         updateCartDisplay();
 
-        // Assemble panels
+        //Panel ใหญ่รวมรายการสินค้า และตะกร้า
         JPanel contentPanel = new JPanel(new BorderLayout(15, 15));
         contentPanel.setBackground(BG_COLOR);
         contentPanel.add(productsContainer, BorderLayout.CENTER);
@@ -276,11 +270,10 @@ public class App {
         return panel;
     }
 
-    private void showProductDialog(Product product, DefaultListModel<String> productsModel) {
+    private void showProductDialog(Product product, DefaultListModel<String> productsModel) { //แสดง popup edit สินค้า
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBackground(BG_COLOR);
 
-        // Add product image at the top
         JPanel imagePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         imagePanel.setBackground(BG_COLOR);
         JLabel imageLabel = new JLabel();
@@ -288,7 +281,6 @@ public class App {
         if (product != null && productImages.containsKey(product.getName())) {
             imageLabel.setIcon(productImages.get(product.getName()));
         } else {
-            // Placeholder
             imageLabel
                     .setIcon(new ImageIcon(new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB)));
         }
@@ -296,7 +288,7 @@ public class App {
         imagePanel.add(imageLabel);
         panel.add(imagePanel, BorderLayout.NORTH);
 
-        // Input fields
+        // Input fields ต่าง ๆ
         JPanel formPanel = new JPanel(new GridLayout(6, 2, 10, 10));
         formPanel.setBackground(BG_COLOR);
 
@@ -308,13 +300,13 @@ public class App {
         JTextField imagePathField = new JTextField(
                 product != null ? ASSET_PATH + product.getName().toLowerCase() + ".png" : "");
 
-        // Priority dropdown with text labels
+        // Priority แสดงเป็น drop down
         String[] priorities = {"Common Item", "Hot Seller", "New Item"};
         JComboBox<String> priorityDropdown = new JComboBox<>(priorities);
         if (product != null) {
             priorityDropdown.setSelectedIndex(product.getPriority());
         }
-
+        //Browse file รูปจากเครื่อง
         JButton browseButton = createStyledButton("Browse", ACCENT_COLOR);
         browseButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
@@ -323,8 +315,7 @@ public class App {
             if (result == JFileChooser.APPROVE_OPTION) {
                 File selectedFile = fileChooser.getSelectedFile();
                 imagePathField.setText(selectedFile.getAbsolutePath());
-
-                // Update the image preview
+                //image preview
                 try {
                     BufferedImage img = ImageIO.read(selectedFile);
                     Image scaledImg = img.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
@@ -355,31 +346,26 @@ public class App {
 
         if (result == JOptionPane.OK_OPTION) {
             try {
-                int id = product != null ? product.getId() : vm.getAllProducts().size() + 1; // Generate
-                                                                                             // new
-                                                                                             // ID
+                int id = product != null ? product.getId() : vm.getAllProducts().size() + 1; 
                 String name = nameField.getText().trim();
                 int price = Integer.parseInt(priceField.getText().trim());
                 int quantity = Integer.parseInt(quantityField.getText().trim());
-                int priority = priorityDropdown.getSelectedIndex(); // Map selected index to integer
-                                                                    // priority
+                int priority = priorityDropdown.getSelectedIndex();
 
-                // Validate price and quantity
+                // Validate ราคา and ปริมาณ
                 if (price < 0 || quantity < 0) {
                     JOptionPane.showMessageDialog(frame, "Price and quantity must be greater than or equal to 0.",
                             "Validation Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                // Check for image path validity
+                // Validate image path 
                 String imagePath = imagePathField.getText().trim();
                 boolean imageExists = new File(imagePath).exists();
 
-                if (product == null) {
+                if (product == null) { //กรณีไม่มี product
                     // Add new product
                     vm.addProduct(price, name, quantity, priority, imagePath);
-
-                    // If image path is valid, try to load it
                     if (imageExists) {
                         try {
                             BufferedImage img = ImageIO.read(new File(imagePath));
@@ -389,10 +375,9 @@ public class App {
                             System.err.println("Error loading image for " + name);
                         }
                     }
-                } else {
+                } else { //กรณี edit product
                     // Edit existing product
                     if (!product.getName().equals(name)) {
-                        // Name changed, update image mapping
                         productImages.remove(product.getName());
                     }
 
@@ -409,7 +394,7 @@ public class App {
                     vm.editProduct(id, price, name, quantity, priority, imagePath);
                 }
 
-                // Refresh product display
+                // Update รายการสินค้าใหม่
                 updateProductDisplay();
                 updateProductsList(productsModel);
             } catch (NumberFormatException ex) {
@@ -420,12 +405,12 @@ public class App {
         }
     }
 
-    private JPanel createAdminPanel() {
+    private JPanel createAdminPanel() { //สร้าง Admin panel
         JPanel panel = new JPanel(new BorderLayout(15, 15));
         panel.setBackground(BG_COLOR);
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Header Panel
+        // Header
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(new Color(192, 57, 43)); // Different color for admin
         headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -433,7 +418,7 @@ public class App {
         JLabel titleLabel = new JLabel("Ohmboo Control Panel");
         titleLabel.setFont(TITLE_FONT);
         titleLabel.setForeground(Color.WHITE);
-
+        //ปุ่มกลับไปยัง customer
         JButton backButton = createStyledButton("", new Color(231, 76, 60));
         try {
             BufferedImage backIcon = ImageIO.read(new File("assets/IconPic/BackIcon.png"));
@@ -447,11 +432,10 @@ public class App {
         headerPanel.add(titleLabel, BorderLayout.WEST);
         headerPanel.add(backButton, BorderLayout.EAST);
 
-        // Admin Content Panel
         JPanel adminContent = new JPanel(new BorderLayout(15, 15));
         adminContent.setBackground(BG_COLOR);
 
-        // Products List Panel
+        // Products List ดูข้อมูลสินค้า
         JPanel productsListPanel = new JPanel(new BorderLayout());
         productsListPanel.setBackground(BG_COLOR);
         productsListPanel.setBorder(createRoundedBorder("Product Inventory", 10));
@@ -467,7 +451,6 @@ public class App {
 
         productsListPanel.add(productsScroll, BorderLayout.CENTER);
 
-        // Action Panel
         JPanel actionPanel = new JPanel(new BorderLayout());
         actionPanel.setBackground(BG_COLOR);
         actionPanel.setBorder(createRoundedBorder("Actions", 10));
@@ -481,22 +464,22 @@ public class App {
         JButton removeButton =
                 createStyledButton("Remove Selected Product", new Color(192, 57, 43));
 
-        addButton.addActionListener(e -> {
+        addButton.addActionListener(e -> { //เด้ง pop up แก้ไข/เพิ่ม ข้อมูลสินค้า
             showProductDialog(null, productsModel);
         });
 
-        editButton.addActionListener(e -> {
+        editButton.addActionListener(e -> { //เด้ง pop up แก้ไข/เพิ่ม ข้อมูลสินค้า แต่อิงมาจาก product เดิม
             int selectedIndex = productsList.getSelectedIndex();
             if (selectedIndex >= 0) {
                 Product p = vm.getAllProducts().get(selectedIndex);
-                showProductDialog(p, productsModel); // Pass the selected product to the dialog
+                showProductDialog(p, productsModel);
             } else {
                 JOptionPane.showMessageDialog(frame, "Please select a product to edit.",
                         "Selection Required", JOptionPane.WARNING_MESSAGE);
             }
         });
 
-        removeButton.addActionListener(e -> {
+        removeButton.addActionListener(e -> { //ลบจาก list ตาม index
             int selectedIndex = productsList.getSelectedIndex();
             if (selectedIndex >= 0) {
                 Product p = vm.getAllProducts().get(selectedIndex);
@@ -522,7 +505,6 @@ public class App {
 
         actionPanel.add(buttonsPanel, BorderLayout.CENTER);
 
-        // Assemble panels
         adminContent.add(productsListPanel, BorderLayout.CENTER);
         adminContent.add(actionPanel, BorderLayout.EAST);
 
@@ -532,7 +514,7 @@ public class App {
         return panel;
     }
 
-    private void showHistoryDialog() {
+    private void showHistoryDialog() { //แสดงประวัติการขายสินค้า
         JList<String> historyList = new JList<>(historyModel);
         historyList.setFont(REGULAR_FONT);
         historyList.setBackground(Color.WHITE);
@@ -548,7 +530,7 @@ public class App {
         historyDialog.setVisible(true);
     }
 
-    // Animation methods
+    // ปุ่มมี Animation
     private void animateButton(JButton button) {
         Color originalColor = button.getBackground();
         button.setBackground(button.getBackground().brighter());
@@ -559,11 +541,10 @@ public class App {
         timer.setRepeats(false);
         timer.start();
     }
-
+    // Animation หลังจาก Add สินค้าลง Cart
     private void animateCartUpdate(JButton button) {
         animateButton(button);
 
-        // Animate total price label
         Font originalFont = totalPriceLabel.getFont();
         Color originalColor = totalPriceLabel.getForeground();
 
@@ -579,7 +560,6 @@ public class App {
         timer.start();
     }
 
-    // Helper method to create a styled JButton
     private JButton createStyledButton(String text, Color bgColor) {
         JButton button = new JButton(text);
         button.setBackground(bgColor);
@@ -590,8 +570,7 @@ public class App {
         button.setOpaque(true);
         button.setBorderPainted(false);
 
-        // Add hover effect
-        button.addMouseListener(new MouseAdapter() {
+        button.addMouseListener(new MouseAdapter() { //hover effect
             @Override
             public void mouseEntered(MouseEvent e) {
                 button.setBackground(bgColor.brighter());
@@ -616,7 +595,6 @@ public class App {
         return button;
     }
 
-    // Helper method to create rounded title border
     private Border createRoundedBorder(String title, int radius) {
         TitledBorder titledBorder = BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(189, 195, 199), 1, true), title);
@@ -625,19 +603,18 @@ public class App {
         return titledBorder;
     }
 
-    private JButton createProductButton(Product product) {
+    private JButton createProductButton(Product product) { //สร้างปุ่มสินค้า (ในรายการสินค้า)
         JButton button = new JButton();
         button.setLayout(new BorderLayout(5, 5));
         button.setBackground(Color.WHITE);
         button.setBorder(BorderFactory.createLineBorder(new Color(189, 195, 199), 1, true));
         button.setFocusPainted(false);
 
-        // Product icon panel with image
         JPanel iconPanel = new JPanel(new BorderLayout());
         iconPanel.setBackground(ACCENT_COLOR);
         iconPanel.setPreferredSize(new Dimension(0, 100));
 
-        // Add product image
+        // สร้างรูป
         JLabel imageLabel = new JLabel();
         imageLabel.setHorizontalAlignment(JLabel.CENTER);
 
@@ -647,7 +624,7 @@ public class App {
 
         iconPanel.add(imageLabel, BorderLayout.CENTER);
 
-        // Product info panel
+        // แสดงข้อมูล
         JPanel infoPanel = new JPanel(new GridLayout(4, 1));
         infoPanel.setBackground(Color.WHITE);
         infoPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
@@ -664,7 +641,7 @@ public class App {
         stockLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         stockLabel.setForeground(new Color(149, 165, 166));
 
-        // Product priority label
+        // แสดงข้อมูลตาม priority 
         JLabel priorityLabel = new JLabel(getPriorityLevel(product.getPriority()));
         priorityLabel.setFont(new Font("Arial", Font.BOLD, 12));
         priorityLabel.setForeground(getBgColor(product.getPriority()));
@@ -677,7 +654,7 @@ public class App {
         button.add(iconPanel, BorderLayout.NORTH);
         button.add(infoPanel, BorderLayout.CENTER);
 
-        if (product.getQuantity() <= 0) {
+        if (product.getQuantity() <= 0) { //การแสดงผลกรณีสินค้าหมด
             button.setBackground(new Color(220, 220, 220));
             button.setEnabled(false);
             nameLabel.setForeground(new Color(128, 128, 128));
@@ -685,7 +662,6 @@ public class App {
             stockLabel.setForeground(new Color(128, 128, 128));
             priorityLabel.setForeground(new Color(128, 128, 128));
 
-            // Add "out of stock" overlay
             JLabel outOfStockLabel = new JLabel("OUT OF STOCK");
             outOfStockLabel.setHorizontalAlignment(JLabel.CENTER);
             outOfStockLabel.setFont(new Font("Arial", Font.BOLD, 14));
@@ -694,7 +670,7 @@ public class App {
             outOfStockLabel.setOpaque(true);
             iconPanel.add(outOfStockLabel, BorderLayout.SOUTH);
         } else {
-            // Add hover effect for available products
+            // hover effect
             button.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseEntered(MouseEvent e) {
@@ -711,14 +687,14 @@ public class App {
         }
 
         button.addActionListener(e -> {
-            if (product.getQuantity() <= 0) {
+            if (product.getQuantity() <= 0) { //Validate ห้ามซื้อสินค้าหมด
                 JOptionPane.showMessageDialog(frame, "This product is out of stock!", "Error",
                         JOptionPane.ERROR_MESSAGE);
             } else {
-                // Play button sound
+                // เล่นเสียง ขณะ Add สินค้าเข้าตะกร้า
                 Bgm.playSoundEffect(BUTTON_SOUND);
 
-                // Animate button on click
+                // Animate button 
                 iconPanel.setBackground(ACCENT_COLOR.darker());
                 javax.swing.Timer timer = new javax.swing.Timer(150, event -> { 
                     iconPanel.setBackground(ACCENT_COLOR);
@@ -734,7 +710,7 @@ public class App {
         return button;
     }
 
-    public String getPriorityLevel(int priority) {
+    public String getPriorityLevel(int priority) { //คำแสดงผลตาม priority
         switch (priority) {
             case 0:
                 return "Common Item";
@@ -749,7 +725,7 @@ public class App {
         }
     }
 
-    // Update product buttons in the grid
+    // Update product button
     public void updateProductDisplay() {
         if (productGridPanel != null) {
             productGridPanel.removeAll();
@@ -764,7 +740,7 @@ public class App {
         }
     }
 
-    // Update the admin products list
+    // Update product ของ admin 
     private void updateProductsList(DefaultListModel<String> model) {
         model.clear();
         List<Product> products = vm.getAllProducts();
@@ -774,7 +750,7 @@ public class App {
         }
     }
 
-    public Color getBgColor(int priority) {
+    public Color getBgColor(int priority) { // Background color ตาม priority
         switch (priority) {
             case 0:
                 return new Color(52, 152, 219); // Common Item
@@ -788,9 +764,8 @@ public class App {
 
     }
 
-    // Update cart display
-    public void updateCartDisplay() {
-        cartModel.clear(); // Not used anymore, but kept for compatibility
+    public void updateCartDisplay() { // Update ตะกร้า
+        cartModel.clear();
         cartItemsPanel.removeAll();
         List<Product> cartItems = vm.getCart().getAllItems();
         for (int i = 0; i < cartItems.size(); i++) {
@@ -820,7 +795,7 @@ public class App {
             minusBtn.setAlignmentY(Component.CENTER_ALIGNMENT);
             deleteBtn.setAlignmentY(Component.CENTER_ALIGNMENT);
 
-            int idx = i; // for lambda
+            int idx = i; 
             plusBtn.addActionListener(e -> {
                 Product p = vm.getCart().getAllItems().get(idx);
                 Product originalProduct = vm.getAllProducts().stream()
@@ -869,27 +844,26 @@ public class App {
         totalPriceLabel.setText("Total: " + vm.getCart().getSumPrice() + " THB");
     }
 
-    // Prompt for admin password
-    private void promptAdminPassword() {
+    private void promptAdminPassword() { //เด้ง pop up Validate รหัสผ่าน admin
         JPasswordField passwordField = new JPasswordField();
         passwordField.setFont(REGULAR_FONT);
 
         int result = JOptionPane.showConfirmDialog(frame, passwordField, "Enter Secret Code:",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-        if (result == JOptionPane.OK_OPTION) {
+        if (result == JOptionPane.OK_OPTION) { //กรณีใส่รหัสถูก
             String password = new String(passwordField.getPassword());
             if (PASSWORD.equals(password)) {
-                Bgm.playSoundEffect(LEVER_SOUND); // Play lever sound
+                Bgm.playSoundEffect(LEVER_SOUND); // เล่นเสียง effect
                 cardLayout.show(cardPanel, "admin");
-            } else {
+            } else { //กรณีใส่ไม่ถูกแจ้ง error
                 JOptionPane.showMessageDialog(frame, "Incorrect password!", "Access Denied",
                         JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
-    private void addHistoryEntry() {
+    private void addHistoryEntry() { //เพิ่มประวัติหลังการขาย
         StringBuilder historyEntry = new StringBuilder("Purchase on " + new Date() + ": ");
         List<Product> cartItems = vm.getCart().getAllItems();
         for (Product product : cartItems) {
@@ -900,12 +874,11 @@ public class App {
         historyModel.addElement(historyEntry.toString());
     }
 
-    // Show the GUI
-    public void createAndShowGUI() {
+    public void createAndShowGUI() { //Method แสดง GUI
         frame.setVisible(true);
     }
 
-    private void showDialog(String title, JPanel contentPanel, int width, int height) {
+    private void showDialog(String title, JPanel contentPanel, int width, int height) { //Method แสดง Frame
         JDialog dialog = new JDialog(frame, title, true);
         dialog.getContentPane().add(contentPanel);
         dialog.setSize(width, height);
@@ -914,7 +887,7 @@ public class App {
         dialog.setVisible(true);
     }
 
-    private JPanel createQRPanel(String qrUrl) throws IOException {
+    private JPanel createQRPanel(String qrUrl) throws IOException { //สร้าง pop up แสดง QR 
         JPanel qrPanel = new JPanel(new BorderLayout(15, 15));
         qrPanel.setBackground(BG_COLOR);
         qrPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
@@ -931,7 +904,7 @@ public class App {
         return qrPanel;
     }
 
-    private void handleQRPayment(String qrUrl) {
+    private void handleQRPayment(String qrUrl) { //หลังจากชำระ QR เสร็จ
         try {
             JPanel qrPanel = createQRPanel(qrUrl);
 
@@ -939,10 +912,10 @@ public class App {
             nextButton.addActionListener(event -> {
                 JOptionPane.showMessageDialog(frame, "Purchase successful! Thank you.",
                         "Success", JOptionPane.INFORMATION_MESSAGE);
-                addHistoryEntry();
-                vm.cashOut();
-                updateCartDisplay();
-                updateProductDisplay();
+                addHistoryEntry(); //เพิ่มประวัติลงใน history
+                vm.cashOut(); //Cashputตะกร้า
+                updateCartDisplay(); //Update ตะกร้าที่ว่างแล้ว
+                updateProductDisplay(); //Update จำนวนสินค้า Stock ใหม่
                 updateProductsList(productsModel);
                 SwingUtilities.getWindowAncestor(nextButton).dispose();
             });
@@ -955,7 +928,7 @@ public class App {
         }
     }
 
-    private void handleCashPayment() {
+    private void handleCashPayment() { //หลังชำระเงินสดเสร็จ
         int confirm = JOptionPane.showConfirmDialog(frame,
                 "You selected Cash. Proceed to finish?", "Confirm Payment",
                 JOptionPane.YES_NO_OPTION);
@@ -963,26 +936,23 @@ public class App {
         if (confirm == JOptionPane.YES_OPTION) {
             JOptionPane.showMessageDialog(frame, "Purchase successful! Thank you.",
                     "Success", JOptionPane.INFORMATION_MESSAGE);
-            addHistoryEntry();
-            vm.cashOut();
-            updateCartDisplay();
-            updateProductDisplay();
+            addHistoryEntry(); //เพิ่มประวัติลงใน history
+            vm.cashOut(); //Cashputตะกร้า
+            updateCartDisplay(); //Update ตะกร้าที่ว่างแล้ว
+            updateProductDisplay(); //Update จำนวนสินค้า Stock ใหม่
             updateProductsList(productsModel);
         }
     }
 
     public static void main(String[] args) {
-        try {
-            // Set system look and feel
+        try { //Setup UI
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        // Run the app
+        //Run App
         SwingUtilities.invokeLater(() -> {
             VendingMachine vendingMachine = new VendingMachine();
-            // Add products with priority (lower number = higher priority)
             vendingMachine.addProduct(4, "MuekGroob", 6, 1, "assets/productPic/Meukgrub.png");
             vendingMachine.addProduct(10, "Provita", 4, 0, "assets/productPic/Provita.png");
             vendingMachine.addProduct(2, "Lactasoy", 4, 1, "assets/productPic/Lactasoy.png");
